@@ -12,4 +12,11 @@
     <PackageReference Include="Google.Cloud.Firestore" Version="4.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\Account\" />
+    <Folder Include="Views\Admin\" />
+    <Folder Include="Views\Doctor\" />
+    <Folder Include="Views\Patient\" />
+  </ItemGroup>
+
 </Project>

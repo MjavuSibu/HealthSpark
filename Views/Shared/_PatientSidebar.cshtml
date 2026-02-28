@@ -1,5 +1,63 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
+﻿<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon">
+            <svg width="18" height="18"><use href="#ic-activity" /></svg>
+        </div>
+        <div>
+            <div class="brand-name">HealthSpark</div>
+            <div class="brand-sub">My Health</div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section-label">Overview</div>
+        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")"
+           href="@Url.Action("Dashboard", "Patient")">
+            <svg width="15" height="15"><use href="#ic-dashboard" /></svg> Dashboard
+        </a>
+
+        <div class="nav-section-label">My Health</div>
+        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Vitals" ? "active" : "")"
+           href="@Url.Action("Vitals", "Patient")">
+            <svg width="15" height="15"><use href="#ic-heart-pulse" /></svg> Vitals
+        </a>
+        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Symptoms" ? "active" : "")"
+           href="@Url.Action("Symptoms", "Patient")">
+            <svg width="15" height="15"><use href="#ic-clipboard" /></svg> Symptoms
+        </a>
+
+        <div class="nav-section-label">Care</div>
+        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Appointments" ? "active" : "")"
+           href="@Url.Action("Appointments", "Patient")">
+            <svg width="15" height="15"><use href="#ic-calendar" /></svg> Appointments
+        </a>
+        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Doctor" ? "active" : "")"
+           href="@Url.Action("DoctorNotes", "Patient")">
+            <svg width="15" height="15"><use href="#ic-stethoscope" /></svg> My Doctor
+        </a>
+
+        <div class="nav-section-label">Account</div>
+        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Profile" ? "active" : "")"
+           href="@Url.Action("Profile", "Patient")">
+            <svg width="15" height="15"><use href="#ic-user" /></svg> My Profile
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="admin-badge">
+            <div class="admin-avatar">
+                @(ViewData["CurrentUserName"]?.ToString()?[..2].ToUpper() ?? "PT")
+            </div>
+            <div>
+                <div class="admin-name">@ViewData["CurrentUserName"]</div>
+                <div class="admin-role">Patient</div>
+            </div>
+            <a href="@Url.Action("Logout", "Account")" style="margin-left:auto;">
+                <svg width="14" height="14"
+                     style="color:rgba(255,255,255,0.3);cursor:pointer;">
+                    <use href="#ic-logout" />
+                </svg>
+            </a>
+        </div>
+    </div>
+</aside>

@@ -1,0 +1,69 @@
+﻿<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon">
+            <svg width="18" height="18"><use href="#ic-activity" /></svg>
+        </div>
+        <div>
+            <div class="brand-name">HealthSpark</div>
+            <div class="brand-sub">Admin Portal</div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section-label">Overview</div>
+        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")"
+           href="@Url.Action("Dashboard", "Admin")">
+            <svg width="15" height="15"><use href="#ic-dashboard" /></svg> Dashboard
+        </a>
+
+        <div class="nav-section-label">Management</div>
+        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Doctors" ? "active" : "")"
+           href="@Url.Action("Doctors", "Admin")">
+            <svg width="15" height="15"><use href="#ic-stethoscope" /></svg> Doctors
+        </a>
+        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Patients" ? "active" : "")"
+           href="@Url.Action("Patients", "Admin")">
+            <svg width="15" height="15"><use href="#ic-users" /></svg> Patients
+        </a>
+        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Assignments" ? "active" : "")"
+           href="@Url.Action("Assignments", "Admin")">
+            <svg width="15" height="15"><use href="#ic-link" /></svg> Assignments
+        </a>
+        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Appointments" ? "active" : "")"
+           href="@Url.Action("Appointments", "Admin")">
+            <svg width="15" height="15"><use href="#ic-calendar" /></svg> Appointments
+        </a>
+
+        <div class="nav-section-label">System</div>
+        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Alerts" ? "active" : "")"
+           href="@Url.Action("Alerts", "Admin")">
+            <svg width="15" height="15"><use href="#ic-bell" /></svg> Alerts
+            @if ((int)(ViewData["AlertCount"] ?? 0) > 0)
+            {
+                <span class="nav-badge">@ViewData["AlertCount"]</span>
+            }
+        </a>
+        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Settings" ? "active" : "")"
+           href="@Url.Action("Settings", "Admin")">
+            <svg width="15" height="15"><use href="#ic-settings" /></svg> Settings
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="admin-badge">
+            <div class="admin-avatar">
+                @(ViewData["CurrentUserName"]?.ToString()?[..2].ToUpper() ?? "AD")
+            </div>
+            <div>
+                <div class="admin-name">@ViewData["CurrentUserName"]</div>
+                <div class="admin-role">System Admin</div>
+            </div>
+            <a href="@Url.Action("Logout", "Account")" style="margin-left:auto;">
+                <svg width="14" height="14"
+                     style="color:rgba(255,255,255,0.3);cursor:pointer;">
+                    <use href="#ic-logout" />
+                </svg>
+            </a>
+        </div>
+    </div>
+</aside>

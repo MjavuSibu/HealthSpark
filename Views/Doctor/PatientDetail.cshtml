@@ -1,0 +1,472 @@
+﻿@model HealthSpark.ViewModels.DashboardViewModel
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = Model.CurrentUser.FullName;
+    ViewData["ActivePage"] = "Patients";
+    ViewData["Sidebar"] = "_DoctorSidebar";
+    ViewData["CurrentUserName"] = Model.CurrentUser?.FullName ?? "Doctor";
+    ViewData["DoctorSpecialisation"] = Model.DoctorProfile?.Specialisation ?? "Doctor";
+    ViewData["AlertCount"] = Model.UnreadAlertsCount;
+
+    var notes = ViewBag.Notes as List<HealthSpark.Models.ClinicalNote>
+                ?? new List<HealthSpark.Models.ClinicalNote>();
+}
+
+<!-- Back Button -->
+<a href="@Url.Action("Patients", "Doctor")" class="back-btn">
+    <svg width="14" height="14"><use href="#ic-arrow-left" /></svg>
+    Back to Patients
+</a>
+
+<!-- Patient Header -->
+<div class="patient-header">
+    <div class="patient-avatar-lg av-5">
+        @Model.CurrentUser.FullName[..2].ToUpper()
+    </div>
+    <div class="patient-meta">
+        <div class="patient-full-name">@Model.CurrentUser.FullName</div>
+        <div class="patient-details">
+            @Model.CurrentUser.Email ·
+            @Model.CurrentUser.Gender ·
+            DOB: @Model.CurrentUser.DateOfBirth
+        </div>
+        <div class="patient-tags">
+            @if (Model.PatientProfile != null)
+            {
+                <span class="patient-tag">
+                    Blood Type: @Model.PatientProfile.BloodType
+                </span>
+                @foreach (var condition in Model.PatientProfile.ExistingConditions)
+                {
+                    <span class="patient-tag">@condition</span>
+                }
+                @foreach (var allergy in Model.PatientProfile.Allergies)
+                {
+                    <span class="patient-tag" style="background:rgba(232,128,154,0.1);
+                    color:var(--danger);border-color:rgba(232,128,154,0.2);">
+                        @allergy Allergy
+                    </span>
+                }
+            }
+        </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button class="btn btn-ghost btn-sm"
+                onclick="openModal('addNoteModal')">
+            <svg width="13" height="13"><use href="#ic-note" /></svg> Add Note
+        </button>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+    <button class="tab active" onclick="showTab('vitals', this)">
+        Vitals
+    </button>
+    <button class="tab" onclick="showTab('symptoms', this)">
+        Symptoms & AI
+    </button>
+    <button class="tab" onclick="showTab('notes', this)">
+        Clinical Notes
+    </button>
+    <button class="tab" onclick="showTab('appointments', this)">
+        Appointments
+    </button>
+</div>
+
+<!-- VITALS TAB -->
+<div class="tab-panel active" id="tab-vitals">
+    @if (Model.LatestVital != null)
+    {
+        <div class="vitals-grid">
+            <div class="vital-card">
+                <div class="vital-label">Blood Pressure</div>
+                <div class="vital-value" style="font-size:22px;">
+                    @Model.LatestVital.BloodPressureSystolic /
+                    @Model.LatestVital.BloodPressureDiastolic
+                </div>
+                <div class="vital-unit">mmHg</div>
+                @if (Model.LatestVital.BloodPressureSystolic > 140)
+                {
+                    <div class="vital-flag">
+                        <svg width="11" height="11"><use href="#ic-alert" /></svg>
+                        Above normal
+                    </div>
+                }
+            </div>
+            <div class="vital-card">
+                <div class="vital-label">Heart Rate</div>
+                <div class="vital-value">@Model.LatestVital.HeartRate</div>
+                <div class="vital-unit">bpm</div>
+                @if (Model.LatestVital.HeartRate > 100 || Model.LatestVital.HeartRate < 60)
+                {
+                    <div class="vital-flag">
+                        <svg width="11" height="11"><use href="#ic-alert" /></svg>
+                        Abnormal
+                    </div>
+                }
+            </div>
+            <div class="vital-card">
+                <div class="vital-label">Blood Glucose</div>
+                <div class="vital-value">@Model.LatestVital.BloodGlucose</div>
+                <div class="vital-unit">mmol/L</div>
+                @if (Model.LatestVital.BloodGlucose > 11)
+                {
+                    <div class="vital-flag">
+                        <svg width="11" height="11"><use href="#ic-alert" /></svg>
+                        High
+                    </div>
+                }
+            </div>
+            <div class="vital-card">
+                <div class="vital-label">Temperature</div>
+                <div class="vital-value">@Model.LatestVital.Temperature</div>
+                <div class="vital-unit">°C</div>
+                @if (Model.LatestVital.Temperature > 38)
+                {
+                    <div class="vital-flag">
+                        <svg width="11" height="11"><use href="#ic-alert" /></svg>
+                        Elevated
+                    </div>
+                }
+            </div>
+            <div class="vital-card">
+                <div class="vital-label">Weight</div>
+                <div class="vital-value">@Model.LatestVital.Weight</div>
+                <div class="vital-unit">kg</div>
+            </div>
+            <div class="vital-card">
+                <div class="vital-label">Sleep</div>
+                <div class="vital-value">@Model.LatestVital.SleepHours</div>
+                <div class="vital-unit">hours</div>
+            </div>
+            <div class="vital-card">
+                <div class="vital-label">Water Intake</div>
+                <div class="vital-value">@Model.LatestVital.WaterIntakeLitres</div>
+                <div class="vital-unit">litres</div>
+            </div>
+            <div class="vital-card">
+                <div class="vital-label">Logged</div>
+                <div class="vital-value" style="font-size:16px;">
+                    @Model.LatestVital.LoggedAt.ToString("dd MMM")
+                </div>
+                <div class="vital-unit">
+                    @Model.LatestVital.LoggedAt.ToString("HH:mm")
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">No vitals logged yet.</div>
+    }
+
+    <!-- Vitals History -->
+    @if (Model.RecentVitals.Any())
+    {
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Vitals History</div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>BP (mmHg)</th>
+                            <th>HR (bpm)</th>
+                            <th>Glucose (mmol/L)</th>
+                            <th>Weight (kg)</th>
+                            <th>Flagged</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var vital in Model.RecentVitals)
+                        {
+                            <tr>
+                                <td>@vital.LoggedAt.ToString("dd MMM yyyy")</td>
+                                <td style="@(vital.BloodPressureSystolic > 140
+                                                      ? "color:var(--danger);font-weight:600;" : "")">
+                            @vital.BloodPressureSystolic / @vital.BloodPressureDiastolic
+                        </td>
+                        <td>@vital.HeartRate</td>
+                        <td style="@(vital.BloodGlucose > 11
+                                              ? "color:var(--warning);font-weight:500;" : "")">
+                            @vital.BloodGlucose
+                        </td>
+                        <td>@vital.Weight</td>
+                        <td>
+                            <span class="badge @(vital.IsFlagged
+                                                      ? "badge-inactive" : "badge-active")">
+                                @(vital.IsFlagged ? "Yes" : "No")
+                            </span>
+                        </td>
+                    </tr>
+                                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- SYMPTOMS & AI TAB -->
+<div class="tab-panel" id="tab-symptoms">
+    @if (!Model.RecentSymptoms.Any())
+    {
+        <div class="empty-state">No symptoms logged yet.</div>
+    }
+    else
+    {
+        @foreach (var symptom in Model.RecentSymptoms)
+        {
+            <div class="symptom-entry">
+                <div class="symptom-top">
+                    <div>
+                        <div class="symptom-desc">@symptom.Description</div>
+                        <div class="symptom-meta">
+                            Area: @symptom.BodyArea ·
+                            Severity: @symptom.Severity ·
+                            @symptom.LoggedAt.ToString("dd MMM yyyy")
+                        </div>
+                    </div>
+                    @if (symptom.AiAssessment != null)
+                    {
+                        <span class="badge badge-@symptom.AiAssessment.UrgencyLevel">
+                            @symptom.AiAssessment.UrgencyLevel.ToUpper() Urgency
+                        </span>
+                    }
+                </div>
+
+                @if (symptom.AiAssessment != null)
+                {
+                    <div class="ai-assessment">
+                        <div class="ai-header">
+                            <div class="ai-label">
+                                <div class="ai-icon">
+                                    <svg width="12" height="12"><use href="#ic-sparkles" /></svg>
+                                </div>
+                                AI Symptom Assessment
+                            </div>
+                            <div class="ai-urgency urgency-@symptom.AiAssessment.UrgencyLevel">
+                                @symptom.AiAssessment.UrgencyLevel.ToUpper() Urgency
+                            </div>
+                        </div>
+                        <div class="ai-explanation">
+                            @symptom.AiAssessment.Explanation
+                        </div>
+                        <div class="ai-recommendation">
+                            <div class="ai-rec-icon">
+                                <svg width="14" height="14"><use href="#ic-check-circle" /></svg>
+                            </div>
+                            @symptom.AiAssessment.Recommendation
+                        </div>
+                        <div class="ai-footer">
+                            <div class="ai-timestamp">
+                                Generated @symptom.AiAssessment.GeneratedAt.ToString("dd MMM yyyy") ·
+                                @symptom.AiAssessment.ModelUsed
+                            </div>
+                            @if (!symptom.AiAssessment.DoctorOverride)
+                            {
+                                <div style="display:flex;gap:8px;">
+                                    <button class="btn btn-ghost btn-sm"
+                                            onclick="openOverrideModal('@symptom.Id')">
+                                        Override
+                                    </button>
+                                    <form asp-action="AddNote" asp-controller="Doctor" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="patientId"
+                                               value="@symptom.PatientId" />
+                                        <input type="hidden" name="note"
+                                               value="Agreed with AI assessment for symptom: @symptom.Description" />
+                                        <input type="hidden" name="isAlert" value="false" />
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            Agree & Note
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="badge badge-pending">Overridden</span>
+                            }
+                        </div>
+                    </div>
+
+                    @if (symptom.AiAssessment.DoctorOverride &&
+                            !string.IsNullOrEmpty(symptom.AiAssessment.DoctorNote))
+                    {
+                        <div class="doctor-override">
+                            <div class="override-label">Your Override Note</div>
+                            <div class="note-text">@symptom.AiAssessment.DoctorNote</div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    }
+</div>
+
+<!-- CLINICAL NOTES TAB -->
+<div class="tab-panel" id="tab-notes">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+        <button class="btn btn-primary btn-sm"
+                onclick="openModal('addNoteModal')">
+            <svg width="13" height="13"><use href="#ic-plus" /></svg> Add Note
+        </button>
+    </div>
+    @if (!notes.Any())
+    {
+        <div class="empty-state">No clinical notes yet.</div>
+    }
+    else
+    {
+        @foreach (var note in notes)
+        {
+            <div class="note-item">
+                <div class="note-text">@note.Note</div>
+                <div class="note-meta">
+                    @note.CreatedAt.ToString("dd MMM yyyy · HH:mm")
+                    @if (note.IsAlert)
+                    {
+                        <span class="badge badge-inactive" style="margin-left:8px;">
+                            Alert
+                        </span>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<!-- APPOINTMENTS TAB -->
+<div class="tab-panel" id="tab-appointments">
+    @if (!Model.UpcomingAppointments.Any())
+    {
+        <div class="empty-state">No appointments on record.</div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var appt in Model.UpcomingAppointments)
+                        {
+                            <tr>
+                                <td>@appt.Date</td>
+                                <td>@appt.TimeSlot</td>
+                                <td>@appt.Reason</td>
+                                <td>
+                                    <span class="badge @(appt.Status == "confirmed"
+                                                              ? "badge-active" : appt.Status == "cancelled"
+                                                              ? "badge-inactive" : "badge-pending")">
+                                @appt.Status
+                            </span>
+                        </td>
+                    </tr>
+                                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Add Note Modal -->
+<div class="modal-overlay" id="addNoteModal">
+    <div class="modal">
+        <div class="modal-title">Add Clinical Note</div>
+        <div class="modal-sub">
+            This note will be saved to @Model.CurrentUser.FullName's record.
+        </div>
+        <form asp-action="AddNote" asp-controller="Doctor" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="patientId" value="@Model.CurrentUser.Id" />
+            <div class="form-group">
+                <label class="form-label">Note</label>
+                <textarea name="note" class="form-textarea"
+                          placeholder="Write your clinical note here..."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Send as Alert to Patient</label>
+                <select name="isAlert" class="form-select">
+                    <option value="false">No</option>
+                    <option value="true">Yes — notify patient</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost"
+                        onclick="closeModal('addNoteModal')">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">Save Note</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Override Modal -->
+<div class="modal-overlay" id="overrideModal">
+    <div class="modal">
+        <div class="modal-title">Override AI Assessment</div>
+        <div class="modal-sub">
+            Provide your clinical reasoning for overriding this assessment.
+        </div>
+        <form asp-action="OverrideAssessment" asp-controller="Doctor" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="overrideSymptomId" name="symptomId" />
+            <input type="hidden" name="patientId" value="@Model.CurrentUser.Id" />
+            <div class="form-group">
+                <label class="form-label">Your Clinical Note</label>
+                <textarea name="doctorNote" class="form-textarea"
+                          placeholder="Explain your clinical reasoning..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost"
+                        onclick="closeModal('overrideModal')">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Confirm Override
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showTab(id, btn) {
+          document.querySelectorAll('.tab-panel')
+                  .forEach(p => p.classList.remove('active'));
+          document.querySelectorAll('.tab')
+                  .forEach(t => t.classList.remove('active'));
+          document.getElementById('tab-' + id).classList.add('active');
+          btn.classList.add('active');
+        }
+
+        function openModal(id)  { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        function openOverrideModal(symptomId) {
+          document.getElementById('overrideSymptomId').value = symptomId;
+          openModal('overrideModal');
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(o => {
+          o.addEventListener('click', e => {
+            if (e.target === o) o.classList.remove('open');
+          });
+        });
+    </script>
+}

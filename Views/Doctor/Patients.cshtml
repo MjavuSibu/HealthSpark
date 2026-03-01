@@ -1,0 +1,107 @@
+﻿@model HealthSpark.ViewModels.DashboardViewModel
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "My Patients";
+    ViewData["ActivePage"] = "Patients";
+    ViewData["Sidebar"] = "_DoctorSidebar";
+    ViewData["CurrentUserName"] = Model.CurrentUser?.FullName ?? "Doctor";
+    ViewData["DoctorSpecialisation"] = Model.DoctorProfile?.Specialisation ?? "Doctor";
+    ViewData["AlertCount"] = Model.UnreadAlertsCount;
+}
+
+<!-- Search Row -->
+<div class="search-row">
+    <div class="search-wrap">
+        <span class="s-icon">
+            <svg width="14" height="14"><use href="#ic-search" /></svg>
+        </span>
+        <input class="search-input"
+               id="patientSearch"
+               placeholder="Search patients..."
+               onkeyup="filterTable('patientSearch', 'patientTable')" />
+    </div>
+</div>
+
+<!-- Patients Table -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">My Patients</div>
+        <span style="font-size:12.5px;color:var(--text-soft);">
+            @Model.AssignedPatients.Count assigned
+        </span>
+    </div>
+    <div class="table-wrap">
+        <table id="patientTable">
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Gender</th>
+                    <th>Date of Birth</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.AssignedPatients.Any())
+                {
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">No patients assigned yet.</div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var patient in Model.AssignedPatients)
+                    {
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="avatar av-1">
+                                        @patient.FullName[..2].ToUpper()
+                                    </div>
+                                    <div>
+                                        <div class="user-name">@patient.FullName</div>
+                                        <div class="user-email">@patient.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@patient.Gender</td>
+                            <td>@patient.DateOfBirth</td>
+                            <td>
+                                <span class="badge @(patient.IsActive
+                                                        ? "badge-active" : "badge-inactive")">
+                            @(patient.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-row">
+                            <a href="@Url.Action("PatientDetail", "Doctor",
+                                                    new { patientId = patient.Id })"
+                               class="tbl-btn tbl-btn-view"
+                               title="View patient detail">
+                                <svg width="13" height="13"><use href="#ic-eye" /></svg>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                                }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterTable(inputId, tableId) {
+          const filter = document.getElementById(inputId).value.toLowerCase();
+          const rows   = document.querySelectorAll(`#${tableId} tbody tr`);
+          rows.forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(filter)
+              ? '' : 'none';
+          });
+        }
+    </script>
+}

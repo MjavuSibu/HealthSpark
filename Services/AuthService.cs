@@ -1,5 +1,7 @@
 ﻿using FirebaseAdmin.Auth;
 using HealthSpark.Models;
+using System.Text;
+using System.Text.Json;
 
 namespace HealthSpark.Services
 {
@@ -7,11 +9,51 @@ namespace HealthSpark.Services
     {
         private readonly FirebaseAuth _auth;
         private readonly FirebaseService _firebaseService;
+        private readonly string _webApiKey;
+        private readonly HttpClient _httpClient;
 
-        public AuthService(FirebaseAuth auth, FirebaseService firebaseService)
+        public AuthService(
+            FirebaseAuth auth,
+            FirebaseService firebaseService,
+            IConfiguration configuration)
         {
             _auth = auth;
             _firebaseService = firebaseService;
+            _webApiKey = configuration["Firebase:WebApiKey"] ?? string.Empty;
+            _httpClient = new HttpClient();
+        }
+
+        // ── Sign In ────────────────────────────────────────
+
+        public async Task<(string IdToken, string UserId)> SignInAsync(
+            string email, string password)
+        {
+            var url = $"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={_webApiKey}";
+
+            var payload = new
+            {
+                email = email,
+                password = password,
+                returnSecureToken = true
+            };
+
+            var content = new StringContent(
+                JsonSerializer.Serialize(payload),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            var response = await _httpClient.PostAsync(url, content);
+            var json = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception("Invalid email or password.");
+
+            var doc = JsonDocument.Parse(json);
+            var token = doc.RootElement.GetProperty("idToken").GetString() ?? string.Empty;
+            var userId = doc.RootElement.GetProperty("localId").GetString() ?? string.Empty;
+
+            return (token, userId);
         }
 
         // ── Register ───────────────────────────────────────
@@ -30,7 +72,6 @@ namespace HealthSpark.Services
 
             user.Id = createdUser.Uid;
             await _firebaseService.SaveUserAsync(createdUser.Uid, user);
-
             await SetUserRoleAsync(createdUser.Uid, user.Role);
 
             return createdUser.Uid;
@@ -48,11 +89,10 @@ namespace HealthSpark.Services
             await _auth.SetCustomUserClaimsAsync(userId, claims);
         }
 
-        public async Task<string> GetUserRoleAsync(string idToken)
+        public async Task<string> GetUserRoleFromIdAsync(string userId)
         {
-            var decodedToken = await _auth.VerifyIdTokenAsync(idToken);
-            decodedToken.Claims.TryGetValue("role", out var role);
-            return role?.ToString() ?? string.Empty;
+            var user = await _firebaseService.GetUserByIdAsync(userId);
+            return user?.Role ?? string.Empty;
         }
 
         // ── Token Verification ─────────────────────────────
@@ -87,11 +127,8 @@ namespace HealthSpark.Services
             };
 
             await _auth.UpdateUserAsync(args);
-
-            await _firebaseService.UpdateUserAsync(userId, new Dictionary<string, object>
-            {
-                { "IsActive", false }
-            });
+            await _firebaseService.UpdateUserAsync(userId,
+                new Dictionary<string, object> { { "IsActive", false } });
         }
 
         public async Task ReactivateUserAsync(string userId)
@@ -103,11 +140,8 @@ namespace HealthSpark.Services
             };
 
             await _auth.UpdateUserAsync(args);
-
-            await _firebaseService.UpdateUserAsync(userId, new Dictionary<string, object>
-            {
-                { "IsActive", true }
-            });
+            await _firebaseService.UpdateUserAsync(userId,
+                new Dictionary<string, object> { { "IsActive", true } });
         }
 
         public async Task DeleteUserAsync(string userId)

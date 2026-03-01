@@ -1,0 +1,199 @@
+﻿@model HealthSpark.ViewModels.DashboardViewModel
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Manage Doctors";
+    ViewData["ActivePage"] = "Doctors";
+    ViewData["Sidebar"] = "_AdminSidebar";
+}
+
+<!-- Header Row -->
+<div class="search-row">
+    <div class="search-wrap">
+        <span class="s-icon">
+            <svg width="14" height="14"><use href="#ic-search" /></svg>
+        </span>
+        <input class="search-input"
+               id="doctorSearch"
+               placeholder="Search doctors..."
+               onkeyup="filterTable('doctorSearch', 'doctorTable')" />
+    </div>
+    <button class="btn btn-primary"
+            style="margin-left:auto;"
+            onclick="openModal('addDoctorModal')">
+        <svg width="14" height="14"><use href="#ic-plus" /></svg> Add Doctor
+    </button>
+</div>
+
+<!-- Doctors Table -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">All Doctors</div>
+        <span style="font-size:12.5px;color:var(--text-soft);">
+            @Model.AllDoctors.Count registered
+        </span>
+    </div>
+    <div class="table-wrap">
+        <table id="doctorTable">
+            <thead>
+                <tr>
+                    <th>Doctor</th>
+                    <th>Phone</th>
+                    <th>Joined</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var doctor in Model.AllDoctors)
+                {
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <div class="avatar av-1">
+                                    @doctor.FullName[..2].ToUpper()
+                                </div>
+                                <div>
+                                    <div class="user-name">@doctor.FullName</div>
+                                    <div class="user-email">@doctor.Email</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>@doctor.PhoneNumber</td>
+                        <td>@doctor.CreatedAt.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <span class="badge @(doctor.IsActive ? "badge-active" : "badge-inactive")">
+                                @(doctor.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-row">
+                                @if (doctor.IsActive)
+                                {
+                                    <form asp-action="DeactivateDoctor"
+                                          asp-controller="Admin"
+                                          method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="userId" value="@doctor.Id" />
+                                        <button type="submit" class="tbl-btn tbl-btn-flag"
+                                                title="Deactivate">
+                                            <svg width="13" height="13"><use href="#ic-trash" /></svg>
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-action="ReactivateDoctor"
+                                          asp-controller="Admin"
+                                          method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="userId" value="@doctor.Id" />
+                                        <button type="submit" class="tbl-btn tbl-btn-view"
+                                                title="Reactivate">
+                                            <svg width="13" height="13"><use href="#ic-check-circle" /></svg>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Doctor Modal -->
+<div class="modal-overlay" id="addDoctorModal">
+    <div class="modal">
+        <div class="modal-title">Register Doctor</div>
+        <div class="modal-sub">
+            New doctors will receive login credentials via email.
+        </div>
+
+        <form asp-action="RegisterDoctor"
+              asp-controller="Admin"
+              method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input name="FullName" class="form-input" placeholder="Dr. James Patel" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input name="PhoneNumber" class="form-input" placeholder="+44 7700 900000" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input name="Email" class="form-input"
+                       placeholder="doctor@healthspark.com" type="email" />
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input name="Password" class="form-input"
+                           type="password" placeholder="Min. 6 characters" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date of Birth</label>
+                    <input name="DateOfBirth" class="form-input" type="date" />
+                </div>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Gender</label>
+                    <select name="Gender" class="form-select">
+                        <option value="">Select gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <input name="ConfirmPassword" class="form-input"
+                           type="password" placeholder="Repeat password" />
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost"
+                        onclick="closeModal('addDoctorModal')">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Register Doctor
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openModal(id)  { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        function filterTable(inputId, tableId) {
+          const filter = document.getElementById(inputId).value.toLowerCase();
+          const rows   = document.querySelectorAll(`#${tableId} tbody tr`);
+          rows.forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(filter)
+              ? '' : 'none';
+          });
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(o => {
+          o.addEventListener('click', e => {
+            if (e.target === o) o.classList.remove('open');
+          });
+        });
+    </script>
+}

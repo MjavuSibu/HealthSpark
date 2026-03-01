@@ -32,11 +32,12 @@ namespace HealthSpark.Controllers
 
             try
             {
-                var isValid = await _authService.VerifyTokenAsync(model.Email);
+                var (idToken, userId) = await _authService.SignInAsync(
+                    model.Email, model.Password);
 
-                var role = await _authService.GetUserRoleAsync(model.Email);
+                var role = await _authService.GetUserRoleFromIdAsync(userId);
 
-                Response.Cookies.Append("AuthToken", model.Email, new CookieOptions
+                Response.Cookies.Append("AuthToken", userId, new CookieOptions
                 {
                     HttpOnly = true,
                     Secure = true,

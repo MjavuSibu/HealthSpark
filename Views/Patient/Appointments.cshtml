@@ -1,0 +1,179 @@
+﻿@model HealthSpark.ViewModels.DashboardViewModel
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "My Appointments";
+    ViewData["ActivePage"] = "Appointments";
+    ViewData["Sidebar"] = "_PatientSidebar";
+    ViewData["CurrentUserName"] = Model.CurrentUser?.FullName ?? "Patient";
+    ViewData["AlertCount"] = Model.Alerts.Count;
+}
+
+<!-- Header Row -->
+<div class="search-row">
+    <div class="search-wrap">
+        <span class="s-icon">
+            <svg width="14" height="14"><use href="#ic-search" /></svg>
+        </span>
+        <input class="search-input"
+               id="apptSearch"
+               placeholder="Search appointments..."
+               onkeyup="filterTable('apptSearch', 'apptTable')" />
+    </div>
+    <button class="btn btn-primary"
+            onclick="openModal('bookApptModal')">
+        <svg width="14" height="14"><use href="#ic-plus" /></svg>
+        Book Appointment
+    </button>
+</div>
+
+<!-- Appointments Table -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">My Appointments</div>
+        <span style="font-size:12.5px;color:var(--text-soft);">
+            @Model.UpcomingAppointments.Count total
+        </span>
+    </div>
+    <div class="table-wrap">
+        <table id="apptTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.UpcomingAppointments.Any())
+                {
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                No appointments yet. Book your first appointment above.
+                            </div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var appt in Model.UpcomingAppointments)
+                    {
+                        <tr>
+                            <td>@appt.Date</td>
+                            <td>@appt.TimeSlot</td>
+                            <td>@appt.Reason</td>
+                            <td>
+                                <span class="badge
+                          @(appt.Status == "confirmed" ? "badge-active" :
+                                                          appt.Status == "cancelled" ? "badge-inactive" :
+                                                          appt.Status == "completed" ? "badge-active" :
+                                                                                        "badge-pending")">
+                            @appt.Status
+                        </span>
+                    </td>
+                    <td>
+                        @if (appt.Status == "pending" || appt.Status == "confirmed")
+                                {
+                                    <form asp-action="CancelAppointment"
+                                          asp-controller="Patient"
+                                          method="post"
+                                          style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden"
+                                               name="appointmentId"
+                                               value="@appt.Id" />
+                                        <button type="submit"
+                                                class="tbl-btn tbl-btn-flag"
+                                                title="Cancel appointment"
+                                                onclick="return confirm(
+                                          'Are you sure you want to cancel this appointment?')">
+                                            <svg width="13" height="13">
+                                                <use href="#ic-trash" />
+                                            </svg>
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Book Appointment Modal -->
+<div class="modal-overlay" id="bookApptModal">
+    <div class="modal">
+        <div class="modal-title">Book Appointment</div>
+        <div class="modal-sub">
+            Request an appointment with your assigned doctor.
+        </div>
+        <form asp-action="BookAppointment"
+              asp-controller="Patient"
+              method="post">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label class="form-label">Preferred Date</label>
+                <input name="Date"
+                       class="form-input"
+                       type="date"
+                       min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Preferred Time</label>
+                <select name="TimeSlot" class="form-select">
+                    <option value="09:00 AM">09:00 AM</option>
+                    <option value="10:00 AM">10:00 AM</option>
+                    <option value="11:00 AM">11:00 AM</option>
+                    <option value="12:00 PM">12:00 PM</option>
+                    <option value="02:00 PM">02:00 PM</option>
+                    <option value="03:00 PM">03:00 PM</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Reason for Appointment</label>
+                <textarea name="Reason"
+                          class="form-textarea"
+                          style="min-height:80px;"
+                          placeholder="Briefly describe why you would like to book...">
+        </textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-ghost"
+                        onclick="closeModal('bookApptModal')">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Request Appointment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openModal(id)  { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        function filterTable(inputId, tableId) {
+          const filter = document.getElementById(inputId).value.toLowerCase();
+          const rows   = document.querySelectorAll(`#${tableId} tbody tr`);
+          rows.forEach(row => {
+            row.style.display =
+              row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+          });
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(o => {
+          o.addEventListener('click', e => {
+            if (e.target === o) o.classList.remove('open');
+          });
+        });
+    </script>
+}

@@ -1,5 +1,166 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model HealthSpark.ViewModels.DashboardViewModel
+
 @{
+    Layout = "_Layout";
+    ViewData["Title"] = "Appointments";
+    ViewData["ActivePage"] = "Appointments";
+    ViewData["Sidebar"] = "_DoctorSidebar";
+    ViewData["CurrentUserName"] = Model.CurrentUser?.FullName ?? "Doctor";
+    ViewData["DoctorSpecialisation"] = Model.DoctorProfile?.Specialisation ?? "Doctor";
+    ViewData["AlertCount"] = Model.UnreadAlertsCount;
+}
+
+<!-- Search Row -->
+<div class="search-row">
+    <div class="search-wrap">
+        <span class="s-icon">
+            <svg width="14" height="14"><use href="#ic-search" /></svg>
+        </span>
+        <input class="search-input"
+               id="apptSearch"
+               placeholder="Search appointments..."
+               onkeyup="filterTable('apptSearch', 'apptTable')" />
+    </div>
+    <select class="filter-select" onchange="filterByStatus(this.value)">
+        <option value="">All Statuses</option>
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+    </select>
+</div>
+
+<!-- Appointments Table -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">My Appointments</div>
+        <span style="font-size:12.5px;color:var(--text-soft);">
+            @Model.UpcomingAppointments.Count total
+        </span>
+    </div>
+    <div class="table-wrap">
+        <table id="apptTable">
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.UpcomingAppointments.Any())
+                {
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">No appointments found.</div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var appt in Model.UpcomingAppointments)
+                    {
+                        <tr data-status="@appt.Status">
+                            <td>
+                                <div class="user-cell">
+                                    <div class="avatar av-1">PT</div>
+                                    <div class="user-name">@appt.PatientId</div>
+                                </div>
+                            </td>
+                            <td>@appt.Date</td>
+                            <td>@appt.TimeSlot</td>
+                            <td>@appt.Reason</td>
+                            <td>
+                                <span class="badge @(appt.Status == "confirmed"
+                                                        ? "badge-active" : appt.Status == "cancelled"
+                                                        ? "badge-inactive" : appt.Status == "completed"
+                                                        ? "badge-active" : "badge-pending")">
+                            @appt.Status
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-row">
+                            @if (appt.Status == "pending")
+                                    {
+                                        <form asp-action="UpdateAppointmentStatus"
+                                              asp-controller="Doctor"
+                                              method="post"
+                                              style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="appointmentId" value="@appt.Id" />
+                                            <input type="hidden" name="status" value="confirmed" />
+                                            <button type="submit"
+                                                    class="tbl-btn tbl-btn-view"
+                                                    title="Confirm">
+                                                <svg width="13" height="13">
+                                                    <use href="#ic-check-circle" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                        <form asp-action="UpdateAppointmentStatus"
+                                              asp-controller="Doctor"
+                                              method="post"
+                                              style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="appointmentId" value="@appt.Id" />
+                                            <input type="hidden" name="status" value="cancelled" />
+                                            <button type="submit"
+                                                    class="tbl-btn tbl-btn-flag"
+                                                    title="Cancel">
+                                                <svg width="13" height="13">
+                                                    <use href="#ic-trash" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    }
+                                    @if (appt.Status == "confirmed")
+                                    {
+                                        <form asp-action="UpdateAppointmentStatus"
+                                              asp-controller="Doctor"
+                                              method="post"
+                                              style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="appointmentId" value="@appt.Id" />
+                                            <input type="hidden" name="status" value="completed" />
+                                            <button type="submit"
+                                                    class="tbl-btn tbl-btn-view"
+                                                    title="Mark as completed">
+                                                <svg width="13" height="13">
+                                                    <use href="#ic-check-circle" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterTable(inputId, tableId) {
+          const filter = document.getElementById(inputId).value.toLowerCase();
+          const rows   = document.querySelectorAll(`#${tableId} tbody tr`);
+          rows.forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(filter)
+              ? '' : 'none';
+          });
+        }
+
+        function filterByStatus(status) {
+          const rows = document.querySelectorAll('#apptTable tbody tr');
+          rows.forEach(row => {
+            row.style.display = !status ||
+              row.dataset.status === status ? '' : 'none';
+          });
+        }
+    </script>
 }

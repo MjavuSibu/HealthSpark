@@ -1,5 +1,190 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model HealthSpark.ViewModels.DashboardViewModel
+
 @{
+    Layout = "_Layout";
+    ViewData["Title"] = "Dashboard";
+    ViewData["ActivePage"] = "Dashboard";
+    ViewData["Sidebar"] = "_DoctorSidebar";
+    ViewData["CurrentUserName"] = Model.CurrentUser.FullName;
+    ViewData["DoctorSpecialisation"] = Model.DoctorProfile?.Specialisation ?? "Doctor";
+    ViewData["AlertCount"] = Model.UnreadAlertsCount;
 }
+
+<!-- Welcome Banner -->
+<div class="welcome-banner">
+    <div class="welcome-title">
+        Good morning, @Model.CurrentUser.FullName
+    </div>
+    <div class="welcome-sub">
+        You have @Model.TodaysAppointments.Count appointment(s) today
+        and @Model.UnreadAlertsCount unread alert(s).
+    </div>
+    <div class="welcome-date">
+        @DateTime.Now.ToString("dddd, dd MMMM yyyy")
+    </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon-wrap si-purple">
+            <svg width="18" height="18"><use href="#ic-users" /></svg>
+        </div>
+        <div class="stat-value">@Model.AssignedPatients.Count</div>
+        <div class="stat-label">Assigned Patients</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon-wrap si-green">
+            <svg width="18" height="18"><use href="#ic-calendar" /></svg>
+        </div>
+        <div class="stat-value">@Model.TodaysAppointments.Count</div>
+        <div class="stat-label">Appointments Today</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon-wrap si-red">
+            <svg width="18" height="18"><use href="#ic-alert" /></svg>
+        </div>
+        <div class="stat-value">@Model.UnreadAlertsCount</div>
+        <div class="stat-label">Unread Alerts</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon-wrap si-lilac">
+            <svg width="18" height="18"><use href="#ic-note" /></svg>
+        </div>
+        <div class="stat-value">@Model.AssignedPatients.Count</div>
+        <div class="stat-label">Active Cases</div>
+    </div>
+</div>
+
+<div class="grid-3">
+
+    <!-- Today's Appointments -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Today's Appointments</div>
+            <a href="@Url.Action("Appointments", "Doctor")"
+               class="btn btn-ghost btn-sm">View All</a>
+        </div>
+        <div class="card-body">
+            @if (!Model.TodaysAppointments.Any())
+            {
+                <div class="empty-state">No appointments today.</div>
+            }
+            else
+            {
+                @foreach (var appt in Model.TodaysAppointments)
+                {
+                    <div class="appt-item">
+                        <div class="appt-time-block">
+                            <div class="appt-time">@appt.TimeSlot.Split(' ')[0]</div>
+                            <div class="appt-ampm">@appt.TimeSlot.Split(' ')[1]</div>
+                        </div>
+                        <div class="appt-divider"></div>
+                        <div class="appt-patient">
+                            <div class="appt-name">@appt.PatientId</div>
+                            <div class="appt-reason">@appt.Reason</div>
+                        </div>
+                        <span class="badge @(appt.Status == "confirmed"
+                                            ? "badge-active" : "badge-pending")">
+                    @appt.Status
+                </span>
+            </div>
+                        }
+            }
+        </div>
+    </div>
+
+    <!-- Flagged Alerts -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Flagged Readings</div>
+            <span class="badge badge-inactive">
+                @Model.UnreadAlertsCount Active
+            </span>
+        </div>
+        <div class="card-body">
+            @if (!Model.Alerts.Any())
+            {
+                <div class="empty-state">No flagged readings.</div>
+            }
+            else
+            {
+                @foreach (var alert in Model.Alerts.Take(3))
+                {
+                    <div class="alert-row">
+                        <div class="alert-icon">
+                            <svg width="16" height="16"><use href="#ic-alert" /></svg>
+                        </div>
+                        <div class="alert-body">
+                            <div class="alert-name">@alert.Message</div>
+                            <div class="alert-desc">
+                                @alert.CreatedAt.ToString("dd MMM yyyy · HH:mm")
+                            </div>
+                        </div>
+                        <a href="@Url.Action("PatientDetail", "Doctor",
+                                          new { patientId = alert.PatientId })"
+                   class="btn btn-ghost btn-sm">
+                    View
+                </a>
+            </div>
+                        }
+            }
+        </div>
+    </div>
+
+</div>
+
+<!-- Assigned Patients -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">My Patients</div>
+        <a href="@Url.Action("Patients", "Doctor")"
+           class="btn btn-ghost btn-sm">View All</a>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Gender</th>
+                    <th>Date of Birth</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var patient in Model.AssignedPatients.Take(5))
+                {
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <div class="avatar av-1">
+                                    @patient.FullName[..2].ToUpper()
+                                </div>
+                                <div>
+                                    <div class="user-name">@patient.FullName</div>
+                                    <div class="user-email">@patient.Email</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>@patient.Gender</td>
+                        <td>@patient.DateOfBirth</td>
+                        <td>
+                            <span class="badge @(patient.IsActive
+                                                  ? "badge-active" : "badge-inactive")">
+                            @(patient.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </td>
+                    <td>
+                        <a href="@Url.Action("PatientDetail", "Doctor",
+                                            new { patientId = patient.Id })"
+                           class="tbl-btn tbl-btn-view">
+                            <svg width="13" height="13"><use href="#ic-eye" /></svg>
+                        </a>
+                    </td>
+                </tr>
+                                }
+            </tbody>
+        </table>
+    </div>
+</div>

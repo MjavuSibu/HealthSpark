@@ -181,6 +181,13 @@ namespace HealthSpark.Controllers
             return RedirectToAction("Patients");
         }
 
+        [HttpPost]
+        public async Task<IActionResult> ReactivatePatient(string userId)
+        {
+            await _authService.ReactivateUserAsync(userId);
+            return RedirectToAction("Patients");
+        }
+
         // ── Assignments ────────────────────────────────────
 
         public async Task<IActionResult> Assignments()

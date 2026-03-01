@@ -1,5 +1,201 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model HealthSpark.ViewModels.DashboardViewModel
+
 @{
+    Layout = "_Layout";
+    ViewData["Title"] = "Symptom Log";
+    ViewData["ActivePage"] = "Symptoms";
+    ViewData["Sidebar"] = "_PatientSidebar";
+    ViewData["CurrentUserName"] = Model.CurrentUser?.FullName ?? "Patient";
+    ViewData["AlertCount"] = Model.Alerts.Count;
+}
+
+<!-- Header Row -->
+<div class="search-row">
+    <div style="flex:1;">
+        <div style="font-size:13px;color:var(--text-soft);">
+            Log a symptom and receive an AI assessment based on your health profile.
+        </div>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('logSymptomModal')">
+        <svg width="14" height="14"><use href="#ic-plus" /></svg> Log Symptom
+    </button>
+</div>
+
+<!-- Symptoms List -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">My Symptom Log</div>
+        <span style="font-size:12.5px;color:var(--text-soft);">
+            @Model.RecentSymptoms.Count entries
+        </span>
+    </div>
+    <div class="card-body">
+        @if (!Model.RecentSymptoms.Any())
+        {
+            <div class="empty-state">
+                No symptoms logged yet. Click Log Symptom to get started.
+            </div>
+        }
+        else
+        {
+            @foreach (var symptom in Model.RecentSymptoms)
+            {
+                <div class="symptom-entry">
+                    <div class="symptom-top">
+                        <div>
+                            <div class="symptom-desc">@symptom.Description</div>
+                            <div class="symptom-meta">
+                                Area: @symptom.BodyArea ·
+                                Severity: @symptom.Severity ·
+                                @symptom.LoggedAt.ToString("dd MMM yyyy")
+                            </div>
+                        </div>
+                        @if (symptom.AiAssessment != null)
+                        {
+                            <span class="badge badge-@symptom.AiAssessment.UrgencyLevel">
+                                @symptom.AiAssessment.UrgencyLevel.ToUpper() Urgency
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-pending">Pending Assessment</span>
+                        }
+                    </div>
+
+                    @if (symptom.AiAssessment != null)
+                    {
+                        <div class="ai-assessment">
+                            <div class="ai-header">
+                                <div class="ai-label">
+                                    <div class="ai-icon">
+                                        <svg width="12" height="12"><use href="#ic-sparkles" /></svg>
+                                    </div>
+                                    AI Assessment
+                                </div>
+                                <div class="ai-urgency urgency-@symptom.AiAssessment.UrgencyLevel">
+                                    @symptom.AiAssessment.UrgencyLevel.ToUpper() Urgency
+                                </div>
+                            </div>
+                            <div class="ai-explanation">
+                                @symptom.AiAssessment.Explanation
+                            </div>
+                            <div class="ai-recommendation">
+                                <div class="ai-rec-icon">
+                                    <svg width="14" height="14"><use href="#ic-check-circle" /></svg>
+                                </div>
+                                @symptom.AiAssessment.Recommendation
+                            </div>
+                            <div class="ai-footer">
+                                <div class="ai-timestamp">
+                                    Generated @symptom.AiAssessment.GeneratedAt.ToString("dd MMM yyyy") ·
+                                    @symptom.AiAssessment.ModelUsed
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (symptom.AiAssessment.DoctorOverride &&
+                                    !string.IsNullOrEmpty(symptom.AiAssessment.DoctorNote))
+                        {
+                            <div class="doctor-override">
+                                <div class="override-label">
+                                    Doctor's Response
+                                </div>
+                                <div class="note-text">
+                                    @symptom.AiAssessment.DoctorNote
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="ai-loading">
+                            <div class="spinner"></div>
+                            AI assessment is being generated...
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<!-- Log Symptom Modal -->
+<div class="modal-overlay" id="logSymptomModal">
+    <div class="modal">
+        <div class="modal-title">Log a Symptom</div>
+        <div class="modal-sub">
+            Describe your symptom and our AI will assess it
+            based on your health profile.
+        </div>
+        <form asp-action="LogSymptom" asp-controller="Patient" method="post">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label class="form-label">Describe your symptom</label>
+                <textarea name="Description" class="form-textarea"
+                          placeholder="e.g. I've been experiencing a dull headache since this morning...">
+        </textarea>
+            </div>
+            <div class="vitals-form-grid">
+                <div class="form-group">
+                    <label class="form-label">Body Area</label>
+                    <select name="BodyArea" class="form-select">
+                        <option value="Head">Head</option>
+                        <option value="Chest">Chest</option>
+                        <option value="Abdomen">Abdomen</option>
+                        <option value="Back">Back</option>
+                        <option value="Arms / Legs">Arms / Legs</option>
+                        <option value="General">General</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Severity</label>
+                    <select name="Severity" class="form-select">
+                        <option value="mild">Mild</option>
+                        <option value="moderate">Moderate</option>
+                        <option value="severe">Severe</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="padding:12px 14px;background:var(--ai-bg);
+                  border:1px solid var(--ai-border);border-radius:9px;
+                  font-size:12.5px;color:var(--text-mid);line-height:1.5;">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                    <div class="ai-icon" style="width:18px;height:18px;">
+                        <svg width="10" height="10"><use href="#ic-sparkles" /></svg>
+                    </div>
+                    <span style="font-size:10.5px;font-weight:700;
+                       color:var(--deep-purple);text-transform:uppercase;
+                       letter-spacing:1px;">AI Assessment</span>
+                </div>
+                After submitting, our AI will assess your symptom using your
+                existing conditions, medications and recent vitals.
+                The result will appear here and be shared with your doctor.
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost"
+                        onclick="closeModal('logSymptomModal')">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <svg width="13" height="13"><use href="#ic-sparkles" /></svg>
+                    Submit & Analyse
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openModal(id)  { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        document.querySelectorAll('.modal-overlay').forEach(o => {
+          o.addEventListener('click', e => {
+            if (e.target === o) o.classList.remove('open');
+          });
+        });
+    </script>
 }

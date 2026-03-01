@@ -1,5 +1,335 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model HealthSpark.ViewModels.DashboardViewModel
+
 @{
+    Layout = "_Layout";
+    ViewData["Title"] = "My Vitals";
+    ViewData["ActivePage"] = "Vitals";
+    ViewData["Sidebar"] = "_PatientSidebar";
+    ViewData["CurrentUserName"] = Model.CurrentUser?.FullName ?? "Patient";
+    ViewData["AlertCount"] = Model.Alerts.Count;
+}
+
+<!-- Header Row -->
+<div class="search-row">
+    <div style="flex:1;">
+        <div style="font-size:13px;color:var(--text-soft);">
+            Showing your most recent vitals and history.
+        </div>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('logVitalsModal')">
+        <svg width="14" height="14"><use href="#ic-plus" /></svg> Log Vitals
+    </button>
+</div>
+
+<!-- Latest Vitals Grid -->
+@if (Model.LatestVital != null)
+{
+    <div class="vitals-grid" style="margin-bottom:24px;">
+        <div class="vital-card">
+            <div class="vital-label">Blood Pressure</div>
+            <div class="vital-value" style="font-size:22px;">
+                @Model.LatestVital.BloodPressureSystolic /
+                @Model.LatestVital.BloodPressureDiastolic
+            </div>
+            <div class="vital-unit">
+                mmHg · @Model.LatestVital.LoggedAt.ToString("dd MMM HH:mm")
+            </div>
+            @if (Model.LatestVital.BloodPressureSystolic > 140)
+            {
+                <div class="vital-flag">
+                    <svg width="11" height="11"><use href="#ic-alert" /></svg> Above normal
+                </div>
+            }
+            else
+            {
+                <div class="vital-ok">
+                    <svg width="11" height="11"><use href="#ic-check-circle" /></svg> Normal
+                </div>
+            }
+        </div>
+        <div class="vital-card">
+            <div class="vital-label">Heart Rate</div>
+            <div class="vital-value">@Model.LatestVital.HeartRate</div>
+            <div class="vital-unit">
+                bpm · @Model.LatestVital.LoggedAt.ToString("dd MMM HH:mm")
+            </div>
+            @if (Model.LatestVital.HeartRate > 100 || Model.LatestVital.HeartRate < 60)
+            {
+                <div class="vital-flag">
+                    <svg width="11" height="11"><use href="#ic-alert" /></svg> Abnormal
+                </div>
+            }
+            else
+            {
+                <div class="vital-ok">
+                    <svg width="11" height="11"><use href="#ic-check-circle" /></svg> Normal
+                </div>
+            }
+        </div>
+        <div class="vital-card">
+            <div class="vital-label">Blood Glucose</div>
+            <div class="vital-value">@Model.LatestVital.BloodGlucose</div>
+            <div class="vital-unit">
+                mmol/L · @Model.LatestVital.LoggedAt.ToString("dd MMM HH:mm")
+            </div>
+            @if (Model.LatestVital.BloodGlucose > 11)
+            {
+                <div class="vital-flag">
+                    <svg width="11" height="11"><use href="#ic-alert" /></svg> High
+                </div>
+            }
+            else
+            {
+                <div class="vital-ok">
+                    <svg width="11" height="11"><use href="#ic-check-circle" /></svg> Normal
+                </div>
+            }
+        </div>
+        <div class="vital-card">
+            <div class="vital-label">Temperature</div>
+            <div class="vital-value">@Model.LatestVital.Temperature</div>
+            <div class="vital-unit">
+                °C · @Model.LatestVital.LoggedAt.ToString("dd MMM HH:mm")
+            </div>
+            @if (Model.LatestVital.Temperature > 38)
+            {
+                <div class="vital-flag">
+                    <svg width="11" height="11"><use href="#ic-alert" /></svg> Elevated
+                </div>
+            }
+            else
+            {
+                <div class="vital-ok">
+                    <svg width="11" height="11"><use href="#ic-check-circle" /></svg> Normal
+                </div>
+            }
+        </div>
+        <div class="vital-card">
+            <div class="vital-label">Weight</div>
+            <div class="vital-value">@Model.LatestVital.Weight</div>
+            <div class="vital-unit">
+                kg · @Model.LatestVital.LoggedAt.ToString("dd MMM HH:mm")
+            </div>
+            <div class="vital-ok">
+                <svg width="11" height="11"><use href="#ic-check-circle" /></svg> Stable
+            </div>
+        </div>
+        <div class="vital-card">
+            <div class="vital-label">Sleep</div>
+            <div class="vital-value">@Model.LatestVital.SleepHours</div>
+            <div class="vital-unit">hours · last night</div>
+            @if (Model.LatestVital.SleepHours < 7)
+            {
+                <div class="vital-flag">
+                    <svg width="11" height="11"><use href="#ic-alert" /></svg> Below 7hr target
+                </div>
+            }
+            else
+            {
+                <div class="vital-ok">
+                    <svg width="11" height="11"><use href="#ic-check-circle" /></svg> Good
+                </div>
+            }
+        </div>
+        <div class="vital-card">
+            <div class="vital-label">Water Intake</div>
+            <div class="vital-value">@Model.LatestVital.WaterIntakeLitres</div>
+            <div class="vital-unit">litres · today</div>
+            @if (Model.LatestVital.WaterIntakeLitres < 2)
+            {
+                <div class="vital-flag">
+                    <svg width="11" height="11"><use href="#ic-alert" /></svg> Below 2L target
+                </div>
+            }
+            else
+            {
+                <div class="vital-ok">
+                    <svg width="11" height="11"><use href="#ic-check-circle" /></svg> Good
+                </div>
+            }
+        </div>
+        <div class="vital-card">
+            <div class="vital-label">Overall</div>
+            @{
+                var flagCount = Model.RecentVitals.Count(v => v.IsFlagged);
+            }
+            <div class="vital-value" style="font-size:18px;
+               color:@(flagCount > 0 ? "var(--danger)" : "var(--success)")">
+                @(flagCount > 0 ? "Needs attention" : "All good")
+            </div>
+            <div class="vital-unit">
+                @(flagCount > 0 ? $"{flagCount} reading(s) flagged" : "No flags")
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card" style="margin-bottom:24px;">
+        <div class="card-body">
+            <div class="empty-state">
+                No vitals logged yet. Click Log Vitals to get started.
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Vitals History -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Vitals History</div>
+        <span style="font-size:12.5px;color:var(--text-soft);">
+            @Model.RecentVitals.Count entries
+        </span>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>BP (mmHg)</th>
+                    <th>HR (bpm)</th>
+                    <th>Glucose (mmol/L)</th>
+                    <th>Weight (kg)</th>
+                    <th>Sleep (hrs)</th>
+                    <th>Flagged</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.RecentVitals.Any())
+                {
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">No vitals history yet.</div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var vital in Model.RecentVitals)
+                    {
+                        <tr>
+                            <td>@vital.LoggedAt.ToString("dd MMM yyyy")</td>
+                            <td style="@(vital.BloodPressureSystolic > 140
+                                                ? "color:var(--danger);font-weight:600;" : "")">
+                        @vital.BloodPressureSystolic / @vital.BloodPressureDiastolic
+                    </td>
+                    <td>@vital.HeartRate</td>
+                    <td style="@(vital.BloodGlucose > 11
+                                        ? "color:var(--warning);font-weight:500;" : "")">
+                        @vital.BloodGlucose
+                    </td>
+                    <td>@vital.Weight</td>
+                    <td>@vital.SleepHours</td>
+                    <td>
+                        <span class="badge @(vital.IsFlagged
+                                                ? "badge-inactive" : "badge-active")">
+                            @(vital.IsFlagged ? "Yes" : "No")
+                        </span>
+                    </td>
+                </tr>
+                                }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Log Vitals Modal -->
+<div class="modal-overlay" id="logVitalsModal">
+    <div class="modal">
+        <div class="modal-title">Log Vitals</div>
+        <div class="modal-sub">
+            All fields are optional — log what you have available.
+        </div>
+        <form asp-action="LogVitals" asp-controller="Patient" method="post">
+            @Html.AntiForgeryToken()
+            <div class="vitals-form-grid">
+                <div class="form-group">
+                    <label class="form-label">Systolic BP</label>
+                    <div class="input-with-unit">
+                        <input name="BloodPressureSystolic" class="form-input"
+                               type="number" placeholder="e.g. 120" />
+                        <span class="input-unit">mmHg</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Diastolic BP</label>
+                    <div class="input-with-unit">
+                        <input name="BloodPressureDiastolic" class="form-input"
+                               type="number" placeholder="e.g. 80" />
+                        <span class="input-unit">mmHg</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Heart Rate</label>
+                    <div class="input-with-unit">
+                        <input name="HeartRate" class="form-input"
+                               type="number" placeholder="e.g. 72" />
+                        <span class="input-unit">bpm</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Blood Glucose</label>
+                    <div class="input-with-unit">
+                        <input name="BloodGlucose" class="form-input"
+                               type="number" step="0.1" placeholder="e.g. 7.2" />
+                        <span class="input-unit">mmol/L</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Temperature</label>
+                    <div class="input-with-unit">
+                        <input name="Temperature" class="form-input"
+                               type="number" step="0.1" placeholder="e.g. 37.0" />
+                        <span class="input-unit">°C</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Weight</label>
+                    <div class="input-with-unit">
+                        <input name="Weight" class="form-input"
+                               type="number" step="0.1" placeholder="e.g. 80" />
+                        <span class="input-unit">kg</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sleep Last Night</label>
+                    <div class="input-with-unit">
+                        <input name="SleepHours" class="form-input"
+                               type="number" step="0.5" placeholder="e.g. 7.5" />
+                        <span class="input-unit">hrs</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Water Intake</label>
+                    <div class="input-with-unit">
+                        <input name="WaterIntakeLitres" class="form-input"
+                               type="number" step="0.1" placeholder="e.g. 2.0" />
+                        <span class="input-unit">L</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost"
+                        onclick="closeModal('logVitalsModal')">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">Save Vitals</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openModal(id)  { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        document.querySelectorAll('.modal-overlay').forEach(o => {
+          o.addEventListener('click', e => {
+            if (e.target === o) o.classList.remove('open');
+          });
+        });
+    </script>
 }

@@ -228,10 +228,24 @@ namespace HealthSpark.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateProfile(PatientProfile profile)
+        [HttpPost]
+        public async Task<IActionResult> UpdateProfile(
+             PatientProfile profile,
+             string ExistingConditionsRaw,
+             string AllergiesRaw)
         {
             var patientId = GetPatientId();
             profile.UserId = patientId;
+
+            profile.ExistingConditions = ExistingConditionsRaw?
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(c => c.Trim())
+                .ToList() ?? new List<string>();
+
+            profile.Allergies = AllergiesRaw?
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(a => a.Trim())
+                .ToList() ?? new List<string>();
 
             await _firebaseService.SavePatientProfileAsync(patientId, profile);
 
@@ -244,8 +258,26 @@ namespace HealthSpark.Controllers
         {
             var patientId = GetPatientId();
             var notes = await _firebaseService.GetNotesByPatientAsync(patientId);
+            var profile = await _firebaseService.GetPatientProfileAsync(patientId);
+            var patient = await _firebaseService.GetUserByIdAsync(patientId);
 
             ViewBag.Notes = notes;
+            ViewBag.AlertCount = 0;
+            ViewBag.PatientName = patient?.FullName ?? "Patient";
+
+            if (profile != null &&
+                !string.IsNullOrEmpty(profile.AssignedDoctorId))
+            {
+                var doctor = await _firebaseService
+                    .GetUserByIdAsync(profile.AssignedDoctorId);
+                var doctorProfile = await _firebaseService
+                    .GetDoctorProfileAsync(profile.AssignedDoctorId);
+
+                ViewBag.DoctorName = doctor?.FullName ?? "Your Doctor";
+                ViewBag.DoctorEmail = doctor?.Email ?? "Not available";
+                ViewBag.DoctorSpecialisation = doctorProfile?.Specialisation
+                                               ?? "General Practice";
+            }
 
             return View();
         }

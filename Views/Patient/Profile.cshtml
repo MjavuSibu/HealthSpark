@@ -1,5 +1,255 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model HealthSpark.ViewModels.DashboardViewModel
+
 @{
+    Layout = "_Layout";
+    ViewData["Title"] = "My Profile";
+    ViewData["ActivePage"] = "Profile";
+    ViewData["Sidebar"] = "_PatientSidebar";
+    ViewData["CurrentUserName"] = Model.CurrentUser?.FullName ?? "Patient";
+    ViewData["AlertCount"] = Model.Alerts.Count;
+}
+
+<div class="card" style="max-width:680px;">
+    <div class="card-header">
+        <div class="card-title">My Profile</div>
+        <button class="btn btn-ghost btn-sm"
+                onclick="openModal('editProfileModal')">
+            <svg width="13" height="13"><use href="#ic-pencil" /></svg> Edit
+        </button>
+    </div>
+    <div class="card-body">
+
+        <!-- Personal Information -->
+        <div class="profile-section">
+            <div class="profile-section-title">Personal Information</div>
+            <div class="profile-grid">
+                <div class="profile-field">
+                    <div class="profile-label">Full Name</div>
+                    <div class="profile-value">@Model.CurrentUser.FullName</div>
+                </div>
+                <div class="profile-field">
+                    <div class="profile-label">Date of Birth</div>
+                    <div class="profile-value">@Model.CurrentUser.DateOfBirth</div>
+                </div>
+                <div class="profile-field">
+                    <div class="profile-label">Gender</div>
+                    <div class="profile-value">@Model.CurrentUser.Gender</div>
+                </div>
+                <div class="profile-field">
+                    <div class="profile-label">Blood Type</div>
+                    <div class="profile-value">
+                        @(Model.PatientProfile?.BloodType ?? "Not set")
+                    </div>
+                </div>
+                <div class="profile-field">
+                    <div class="profile-label">Email</div>
+                    <div class="profile-value">@Model.CurrentUser.Email</div>
+                </div>
+                <div class="profile-field">
+                    <div class="profile-label">Phone</div>
+                    <div class="profile-value">@Model.CurrentUser.PhoneNumber</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Health Information -->
+        <div class="profile-section">
+            <div class="profile-section-title">Health Information</div>
+            <div class="profile-grid">
+                <div class="profile-field">
+                    <div class="profile-label">Height</div>
+                    <div class="profile-value">
+                        @(Model.PatientProfile?.Height > 0
+                                                ? $"{Model.PatientProfile.Height} cm" : "Not set")
+                    </div>
+                </div>
+                <div class="profile-field">
+                    <div class="profile-label">Weight</div>
+                    <div class="profile-value">
+                        @(Model.PatientProfile?.Weight > 0
+                                                ? $"{Model.PatientProfile.Weight} kg" : "Not set")
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:14px;">
+                <div class="profile-label" style="margin-bottom:7px;">
+                    Existing Conditions
+                </div>
+                <div class="tag-list">
+                    @if (Model.PatientProfile?.ExistingConditions.Any() == true)
+                    {
+                        @foreach (var condition in Model.PatientProfile.ExistingConditions)
+                        {
+                            <span class="tag">@condition</span>
+                        }
+                    }
+                    else
+                    {
+                        <span style="font-size:13px;color:var(--text-soft);">
+                            None recorded
+                        </span>
+                    }
+                </div>
+            </div>
+
+            <div style="margin-top:14px;">
+                <div class="profile-label" style="margin-bottom:7px;">Allergies</div>
+                <div class="tag-list">
+                    @if (Model.PatientProfile?.Allergies.Any() == true)
+                    {
+                        @foreach (var allergy in Model.PatientProfile.Allergies)
+                        {
+                            <span class="tag tag-danger">@allergy</span>
+                        }
+                    }
+                    else
+                    {
+                        <span style="font-size:13px;color:var(--text-soft);">
+                            None recorded
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Emergency Contact -->
+        <div class="profile-section">
+            <div class="profile-section-title">Emergency Contact</div>
+            <div class="profile-grid">
+                <div class="profile-field">
+                    <div class="profile-label">Name</div>
+                    <div class="profile-value">
+                        @(string.IsNullOrEmpty(Model.PatientProfile?.EmergencyContactName)
+                                                ? "Not set" : Model.PatientProfile.EmergencyContactName)
+                    </div>
+                </div>
+                <div class="profile-field">
+                    <div class="profile-label">Phone</div>
+                    <div class="profile-value">
+                        @(string.IsNullOrEmpty(Model.PatientProfile?.EmergencyContactPhone)
+                                                ? "Not set" : Model.PatientProfile.EmergencyContactPhone)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal-overlay" id="editProfileModal">
+    <div class="modal">
+        <div class="modal-title">Edit Profile</div>
+        <div class="modal-sub">Update your health profile information.</div>
+        <form asp-action="UpdateProfile"
+              asp-controller="Patient"
+              method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Blood Type</label>
+                    <select name="BloodType" class="form-select">
+                        <option value="">Select</option>
+                        @foreach (var bt in new[] { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" })
+                        {
+                            <option value="@bt"
+                                    selected="@(Model.PatientProfile?.BloodType == bt)">
+                                @bt
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Height (cm)</label>
+                    <input name="Height"
+                           class="form-input"
+                           type="number"
+                           step="0.1"
+                           value="@Model.PatientProfile?.Height" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Weight (kg)</label>
+                <input name="Weight"
+                       class="form-input"
+                       type="number"
+                       step="0.1"
+                       value="@Model.PatientProfile?.Weight" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    Existing Conditions
+                    <span style="font-size:10.5px;color:var(--text-soft);
+                       font-weight:400;margin-left:4px;">
+                        (comma separated)
+                    </span>
+                </label>
+                <input name="ExistingConditionsRaw"
+                       class="form-input"
+                       placeholder="e.g. Hypertension, Type 2 Diabetes"
+                       value="@string.Join(", ",
+                                        Model.PatientProfile?.ExistingConditions
+                                        ?? new List<string>())" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    Allergies
+                    <span style="font-size:10.5px;color:var(--text-soft);
+                       font-weight:400;margin-left:4px;">
+                        (comma separated)
+                    </span>
+                </label>
+                <input name="AllergiesRaw"
+                       class="form-input"
+                       placeholder="e.g. Penicillin, Aspirin"
+                       value="@string.Join(", ",
+                                        Model.PatientProfile?.Allergies
+                                        ?? new List<string>())" />
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Emergency Contact Name</label>
+                    <input name="EmergencyContactName"
+                           class="form-input"
+                           placeholder="Full name"
+                           value="@Model.PatientProfile?.EmergencyContactName" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Emergency Contact Phone</label>
+                    <input name="EmergencyContactPhone"
+                           class="form-input"
+                           placeholder="+44 7700 000000"
+                           value="@Model.PatientProfile?.EmergencyContactPhone" />
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-ghost"
+                        onclick="closeModal('editProfileModal')">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openModal(id)  { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        document.querySelectorAll('.modal-overlay').forEach(o => {
+          o.addEventListener('click', e => {
+            if (e.target === o) o.classList.remove('open');
+          });
+        });
+    </script>
 }

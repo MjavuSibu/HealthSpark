@@ -1,5 +1,187 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model HealthSpark.ViewModels.DashboardViewModel
+
 @{
+    Layout = "_Layout";
+    ViewData["Title"] = "Patient Assignments";
+    ViewData["ActivePage"] = "Assignments";
+    ViewData["Sidebar"] = "_AdminSidebar";
+}
+
+<div class="grid-2">
+
+    <!-- Unassigned Patients -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Unassigned Patients</div>
+            <span class="badge badge-pending">
+                @Model.UnassignedPatients.Count Pending
+            </span>
+        </div>
+        <div class="card-body">
+            @if (!Model.UnassignedPatients.Any())
+            {
+                <div class="empty-state">All patients are assigned.</div>
+            }
+            else
+            {
+                @foreach (var patient in Model.UnassignedPatients)
+                {
+                    <div class="activity-item">
+                        <div class="avatar av-1">
+                            @patient.FullName[..2].ToUpper()
+                        </div>
+                        <div style="flex:1;">
+                            <div class="user-name">@patient.FullName</div>
+                            <div class="user-email">@patient.Email</div>
+                        </div>
+                        <button class="btn btn-primary btn-sm"
+                                onclick="openAssignModal('@patient.Id', '@patient.FullName')">
+                            Assign
+                        </button>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Doctor Workload -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Doctor Workload</div>
+        </div>
+        <div class="card-body">
+            @foreach (var doctor in Model.AllDoctors)
+            {
+                var percentage = (int)Math.Min(
+                (double)doctor.Id.Length / 20 * 100, 100);
+
+                <div class="workload-item">
+                    <div class="workload-header">
+                        <span class="workload-name">@doctor.FullName</span>
+                        <span class="workload-count">@doctor.Email</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill"
+                             style="width:@percentage%">
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+</div>
+
+<!-- All Assignments Table -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">All Patients</div>
+        <span style="font-size:12.5px;color:var(--text-soft);">
+            @Model.AllPatients.Count total
+        </span>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var patient in Model.AllPatients)
+                {
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <div class="avatar av-2">
+                                    @patient.FullName[..2].ToUpper()
+                                </div>
+                                <div>
+                                    <div class="user-name">@patient.FullName</div>
+                                    <div class="user-email">@patient.Email</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge @(patient.IsActive ? "badge-active" : "badge-inactive")">
+                                @(patient.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-ghost btn-sm"
+                                    onclick="openAssignModal('@patient.Id', '@patient.FullName')">
+                                Assign / Reassign
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Assign Doctor Modal -->
+<div class="modal-overlay" id="assignModal">
+    <div class="modal">
+        <div class="modal-title">Assign Doctor</div>
+        <div class="modal-sub" id="assignModalSub">
+            Select a doctor to assign this patient to.
+        </div>
+
+        <form asp-action="AssignPatient"
+              asp-controller="Admin"
+              method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="assignPatientId" name="patientId" />
+
+            <div class="assign-list">
+                @foreach (var doctor in Model.AllDoctors)
+                {
+                    <label class="assign-item">
+                        <input type="radio" name="doctorId" value="@doctor.Id" />
+                        <div class="avatar av-1">
+                            @doctor.FullName[..2].ToUpper()
+                        </div>
+                        <div>
+                            <div class="user-name">@doctor.FullName</div>
+                            <div class="user-email">@doctor.Email</div>
+                        </div>
+                    </label>
+                }
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost"
+                        onclick="closeModal('assignModal')">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Confirm Assignment
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openModal(id)  { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        function openAssignModal(patientId, patientName) {
+          document.getElementById('assignPatientId').value = patientId;
+          document.getElementById('assignModalSub').textContent =
+            `Assigning doctor to: ${patientName}`;
+          openModal('assignModal');
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(o => {
+          o.addEventListener('click', e => {
+            if (e.target === o) o.classList.remove('open');
+          });
+        });
+    </script>
 }

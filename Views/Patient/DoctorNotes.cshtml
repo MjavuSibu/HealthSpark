@@ -1,5 +1,202 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "My Doctor";
+    ViewData["ActivePage"] = "Doctor";
+    ViewData["Sidebar"] = "_PatientSidebar";
+    ViewData["CurrentUserName"] = ViewBag.PatientName ?? "Patient";
+    ViewData["AlertCount"] = ViewBag.AlertCount ?? 0;
+}
+
 @{
+    var notes = ViewBag.Notes as List<HealthSpark.Models.ClinicalNote>
+                ?? new List<HealthSpark.Models.ClinicalNote>();
+}
+
+<!-- Doctor Card -->
+<div class="grid-2" style="margin-bottom:22px;">
+    <div class="doctor-card">
+        <div class="doctor-header">
+            <div class="doctor-avatar-lg av-1">
+                @((ViewBag.DoctorName as string)?[..2].ToUpper() ?? "DR")
+            </div>
+            <div>
+                <div class="doctor-fullname">
+                    @(ViewBag.DoctorName ?? "Your Doctor")
+                </div>
+                <div class="doctor-spec">
+                    @(ViewBag.DoctorSpecialisation ?? "General Practice")
+                </div>
+            </div>
+        </div>
+        <div class="doctor-detail-row">
+            <span class="detail-key">Email</span>
+            <span class="detail-value">
+                @(ViewBag.DoctorEmail ?? "Not available")
+            </span>
+        </div>
+        <div class="doctor-detail-row">
+            <span class="detail-key">Department</span>
+            <span class="detail-value">
+                @(ViewBag.DoctorSpecialisation ?? "General Practice")
+            </span>
+        </div>
+        <div style="margin-top:18px;">
+            <button class="btn btn-primary btn-sm"
+                    onclick="openModal('bookApptModal')">
+                <svg width="13" height="13"><use href="#ic-calendar" /></svg>
+                Book Appointment
+            </button>
+        </div>
+    </div>
+
+    <!-- Notes Summary -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Notes Summary</div>
+        </div>
+        <div class="card-body">
+            <div class="stats-grid"
+                 style="grid-template-columns:repeat(2,1fr);gap:12px;">
+                <div class="stat-card" style="padding:14px;">
+                    <div class="stat-value" style="font-size:24px;">
+                        @notes.Count
+                    </div>
+                    <div class="stat-label">Total Notes</div>
+                </div>
+                <div class="stat-card" style="padding:14px;">
+                    <div class="stat-value" style="font-size:24px;
+               color:var(--danger);">
+                        @notes.Count(n => n.IsAlert)
+                    </div>
+                    <div class="stat-label">Alert Notes</div>
+                </div>
+                <div class="stat-card" style="padding:14px;">
+                    <div class="stat-value" style="font-size:24px;">
+                        @notes.Count(n =>
+                        n.CreatedAt.Month == DateTime.UtcNow.Month &&
+                        n.CreatedAt.Year == DateTime.UtcNow.Year)
+                    </div>
+                    <div class="stat-label">This Month</div>
+                </div>
+                <div class="stat-card" style="padding:14px;">
+                    <div class="stat-value" style="font-size:18px;">
+                        @(notes.Any()
+                                                ? notes.First().CreatedAt.ToString("dd MMM")
+                                                : "N/A")
+                    </div>
+                    <div class="stat-label">Last Note</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Clinical Notes -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Notes from Your Doctor</div>
+        <span style="font-size:12.5px;color:var(--text-soft);">
+            @notes.Count notes
+        </span>
+    </div>
+    <div class="card-body">
+        @if (!notes.Any())
+        {
+            <div class="empty-state">
+                No notes from your doctor yet.
+            </div>
+        }
+        else
+        {
+            @foreach (var note in notes)
+            {
+                <div class="note-item @(note.IsAlert ? "note-item-alert" : "")">
+                    @if (note.IsAlert)
+                    {
+                        <div style="display:flex;align-items:center;gap:6px;
+                                    margin-bottom:7px;">
+                            <svg width="13" height="13"
+                                 style="color:var(--danger);">
+                                <use href="#ic-alert" />
+                            </svg>
+                            <span style="font-size:11px;font-weight:700;
+                                       color:var(--danger);text-transform:uppercase;
+                                       letter-spacing:0.5px;">
+                                Alert
+                            </span>
+                        </div>
+                    }
+                    <div class="note-text">@note.Note</div>
+                    <div class="note-meta">
+                        @note.CreatedAt.ToString("dd MMM yyyy · HH:mm")
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<!-- Book Appointment Modal -->
+<div class="modal-overlay" id="bookApptModal">
+    <div class="modal">
+        <div class="modal-title">Book Appointment</div>
+        <div class="modal-sub">
+            Request an appointment with
+            @(ViewBag.DoctorName ?? "your doctor").
+        </div>
+        <form asp-action="BookAppointment"
+              asp-controller="Patient"
+              method="post">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label class="form-label">Preferred Date</label>
+                <input name="Date"
+                       class="form-input"
+                       type="date"
+                       min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Preferred Time</label>
+                <select name="TimeSlot" class="form-select">
+                    <option value="09:00 AM">09:00 AM</option>
+                    <option value="10:00 AM">10:00 AM</option>
+                    <option value="11:00 AM">11:00 AM</option>
+                    <option value="12:00 PM">12:00 PM</option>
+                    <option value="02:00 PM">02:00 PM</option>
+                    <option value="03:00 PM">03:00 PM</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Reason for Appointment</label>
+                <textarea name="Reason"
+                          class="form-textarea"
+                          style="min-height:70px;"
+                          placeholder="Briefly describe why you'd like to book...">
+        </textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-ghost"
+                        onclick="closeModal('bookApptModal')">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Request Appointment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openModal(id)  { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        document.querySelectorAll('.modal-overlay').forEach(o => {
+          o.addEventListener('click', e => {
+            if (e.target === o) o.classList.remove('open');
+          });
+        });
+    </script>
 }

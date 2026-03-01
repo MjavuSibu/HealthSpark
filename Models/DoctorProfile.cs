@@ -1,11 +1,14 @@
-﻿namespace HealthSpark.Models
+﻿using Google.Cloud.Firestore;
+
+namespace HealthSpark.Models
 {
+    [FirestoreData]
     public class DoctorProfile
     {
-        public string UserId { get; set; } = string.Empty;
-        public string Specialisation { get; set; } = string.Empty;
-        public string LicenseNumber { get; set; } = string.Empty;
-        public string Department { get; set; } = string.Empty;
-        public List<string> AssignedPatientIds { get; set; } = new List<string>();
+        [FirestoreProperty] public string UserId { get; set; } = string.Empty;
+        [FirestoreProperty] public string Specialisation { get; set; } = string.Empty;
+        [FirestoreProperty] public string LicenseNumber { get; set; } = string.Empty;
+        [FirestoreProperty] public string Department { get; set; } = string.Empty;
+        [FirestoreProperty] public List<string> AssignedPatientIds { get; set; } = new List<string>();
     }
 }

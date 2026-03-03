@@ -26,9 +26,9 @@ builder.Services.AddSingleton(firebaseApp);
 builder.Services.AddSingleton(firestoreDb);
 builder.Services.AddSingleton(FirebaseAuth.GetAuth(firebaseApp));
 
-builder.Services.AddSingleton(new AnthropicClient(
-    builder.Configuration["Anthropic:ApiKey"]
-));
+var anthropicKey = builder.Configuration["Anthropic:ApiKey"] ?? string.Empty;
+builder.Services.AddSingleton(new AnthropicClient(anthropicKey));
+Console.WriteLine($"Anthropic Key loaded: {anthropicKey[..10]}...");
 
 builder.Services.AddScoped<FirebaseService>();
 builder.Services.AddScoped<AuthService>();

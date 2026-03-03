@@ -59,10 +59,15 @@ namespace HealthSpark.Controllers
         public async Task<IActionResult> Vitals()
         {
             var patientId = GetPatientId();
+            var patient = await _firebaseService.GetUserByIdAsync(patientId);
+
+            ViewData["CurrentUserName"] = patient?.FullName ?? "";
+
             var vitals = await _firebaseService.GetVitalsByPatientAsync(patientId);
 
             var viewModel = new DashboardViewModel
             {
+                CurrentUser = patient ?? new User(),
                 RecentVitals = vitals,
                 LatestVital = vitals.FirstOrDefault()
             };
@@ -110,10 +115,15 @@ namespace HealthSpark.Controllers
         public async Task<IActionResult> Symptoms()
         {
             var patientId = GetPatientId();
+            var patient = await _firebaseService.GetUserByIdAsync(patientId);
+
+            ViewData["CurrentUserName"] = patient?.FullName ?? "";
+
             var symptoms = await _firebaseService.GetSymptomsByPatientAsync(patientId);
 
             var viewModel = new DashboardViewModel
             {
+                CurrentUser = patient ?? new User(),
                 RecentSymptoms = symptoms
             };
 
@@ -177,10 +187,16 @@ namespace HealthSpark.Controllers
         public async Task<IActionResult> Appointments()
         {
             var patientId = GetPatientId();
-            var appointments = await _firebaseService.GetAppointmentsByPatientAsync(patientId);
+            var patient = await _firebaseService.GetUserByIdAsync(patientId);
+
+            ViewData["CurrentUserName"] = patient?.FullName ?? "";
+
+            var appointments = await _firebaseService
+                .GetAppointmentsByPatientAsync(patientId);
 
             var viewModel = new DashboardViewModel
             {
+                CurrentUser = patient ?? new User(),
                 UpcomingAppointments = appointments
             };
 
@@ -217,6 +233,8 @@ namespace HealthSpark.Controllers
             var patientId = GetPatientId();
             var patient = await _firebaseService.GetUserByIdAsync(patientId);
             var profile = await _firebaseService.GetPatientProfileAsync(patientId);
+
+            ViewData["CurrentUserName"] = patient?.FullName ?? "";
 
             var viewModel = new DashboardViewModel
             {
@@ -257,9 +275,11 @@ namespace HealthSpark.Controllers
         public async Task<IActionResult> DoctorNotes()
         {
             var patientId = GetPatientId();
+            var patient = await _firebaseService.GetUserByIdAsync(patientId);
             var notes = await _firebaseService.GetNotesByPatientAsync(patientId);
             var profile = await _firebaseService.GetPatientProfileAsync(patientId);
-            var patient = await _firebaseService.GetUserByIdAsync(patientId);
+
+            ViewData["CurrentUserName"] = patient?.FullName ?? "";
 
             ViewBag.Notes = notes;
             ViewBag.AlertCount = 0;

@@ -129,58 +129,7 @@ namespace HealthSpark.Controllers
 
             return View(viewModel);
         }
-
-        [HttpPost]
-        public async Task<IActionResult> LogSymptom(SymptomAssessmentViewModel model)
-        {
-            var patientId = GetPatientId();
-
-            if (!ModelState.IsValid)
-                return RedirectToAction("Symptoms");
-
-            var patient = await _firebaseService.GetUserByIdAsync(patientId);
-            var profile = await _firebaseService.GetPatientProfileAsync(patientId);
-            var vitals = await _firebaseService.GetVitalsByPatientAsync(patientId);
-
-            if (patient == null || profile == null)
-                return RedirectToAction("Symptoms");
-
-            var symptom = new Symptom
-            {
-                PatientId = patientId,
-                Description = model.Description,
-                BodyArea = model.BodyArea,
-                Severity = model.Severity,
-                LoggedAt = DateTime.UtcNow
-            };
-
-            var symptomId = await _firebaseService.SaveSymptomAsync(symptom);
-
-            var assessment = await _aiAssessmentService.AssessSymptomAsync(
-                symptom,
-                profile,
-                patient
-            );
-
-            await _firebaseService.UpdateSymptomAssessmentAsync(symptomId, assessment);
-
-            if (assessment.UrgencyLevel == "high" &&
-                !string.IsNullOrEmpty(profile.AssignedDoctorId))
-            {
-                var alert = new Alert
-                {
-                    PatientId = patientId,
-                    DoctorId = profile.AssignedDoctorId,
-                    Message = $"High urgency symptom reported: {symptom.Description}",
-                    IsRead = false,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                await _firebaseService.SaveAlertAsync(alert);
-            }
-
-            return RedirectToAction("Symptoms");
-        }
+       
 
         // ── Appointments ───────────────────────────────────
 

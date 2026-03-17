@@ -9,17 +9,18 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login — HealthSpark</title>
+    <title>Sign In — HealthSpark</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
 <body class="auth-body">
 
-    <div class="auth-wrapper">
+    <!-- ── Left Panel: Form ──────────────────────────── -->
+    <div class="auth-panel">
 
         <div class="auth-brand">
             <div class="auth-brand-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                      stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
@@ -28,65 +29,136 @@
             <div class="auth-brand-name">HealthSpark</div>
         </div>
 
-        <div class="auth-card">
-            <div class="auth-card-header">
-                <div class="auth-title">Welcome back</div>
-                <div class="auth-sub">Sign in to your account to continue</div>
+        <div class="auth-card-header">
+            <div class="auth-title">Welcome back</div>
+            <div class="auth-sub">Sign in to your account to continue</div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="auth-error">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                @Model.ErrorMessage
+            </div>
+        }
+
+        <form asp-action="Login" asp-controller="Account" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label asp-for="Email" class="form-label">Email Address</label>
+                <input asp-for="Email"
+                       class="form-input"
+                       placeholder="you@example.com"
+                       autocomplete="email" />
+                <span asp-validation-for="Email" class="field-error"></span>
             </div>
 
-            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-            {
-                <div class="auth-error">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                        <line x1="12" y1="9" x2="12" y2="13" />
-                        <line x1="12" y1="17" x2="12.01" y2="17" />
-                    </svg>
-                    @Model.ErrorMessage
-                </div>
-            }
-
-            <form asp-action="Login" asp-controller="Account" method="post">
-                @Html.AntiForgeryToken()
-
-                <div class="form-group">
-                    <label asp-for="Email" class="form-label">Email Address</label>
-                    <input asp-for="Email"
-                           class="form-input"
-                           placeholder="you@example.com"
-                           autocomplete="email" />
-                    <span asp-validation-for="Email" class="field-error"></span>
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="Password" class="form-label">Password</label>
-                    <input asp-for="Password"
-                           class="form-input"
-                           placeholder="Enter your password"
-                           autocomplete="current-password" />
-                    <span asp-validation-for="Password" class="field-error"></span>
-                </div>
-
-                <div class="form-check-row">
-                    <label class="form-check">
-                        <input asp-for="RememberMe" type="checkbox" />
-                        <span>Remember me for 30 days</span>
-                    </label>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-full">
-                    Sign In
-                </button>
-
-            </form>
-
-            <div class="auth-footer">
-                Don't have an account?
-                <a href="@Url.Action("Register", "Account")">Create one</a>
+            <div class="form-group" style="margin-bottom:6px;">
+                <label asp-for="Password" class="form-label">Password</label>
+                <input asp-for="Password"
+                       class="form-input"
+                       placeholder="Enter your password"
+                       autocomplete="current-password" />
+                <span asp-validation-for="Password" class="field-error"></span>
             </div>
 
+            <div class="form-check-row" style="margin-bottom:22px;">
+                <label class="form-check">
+                    <input asp-for="RememberMe" type="checkbox" />
+                    <span>Remember me for 30 days</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full"
+                    style="padding:12px 18px;font-size:14px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                    <polyline points="10 17 15 12 10 7" />
+                    <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+                Sign In
+            </button>
+
+        </form>
+
+        <div class="auth-footer">
+            Don't have an account?
+            <a href="@Url.Action("Register", "Account")">Create one</a>
+        </div>
+
+        <!-- SA trust strip -->
+        <div style="margin-top:40px;padding-top:22px;
+                    border-top:1px solid var(--border-soft);
+                    display:flex;align-items:center;gap:10px;">
+            <div style="width:7px;height:7px;background:var(--stable);
+                        border-radius:50%;flex-shrink:0;
+                        box-shadow:0 0 5px rgba(30,140,78,0.45);"></div>
+            <span style="font-size:12px;color:var(--slate-muted);line-height:1.5;">
+                Secured &middot; POPIA compliant &middot; Built for South African healthcare
+            </span>
+        </div>
+
+    </div>
+
+    <!-- ── Right Panel: Hero Image ───────────────────── -->
+    <div class="auth-hero">
+
+        <!-- Live system badge -->
+        <div class="auth-hero-pill">
+            <span class="auth-hero-pill-dot"></span>
+            System Online &middot; South Africa
+        </div>
+
+        <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1200&q=80"
+             alt="Doctor using digital health platform"
+             loading="eager" />
+
+        <!-- Quote + stat pills -->
+        <div class="auth-hero-text">
+            <div class="auth-hero-quote">
+                "Real-time health monitoring,<br />built for the people who need it most."
+            </div>
+            <div class="auth-hero-caption">
+                Connecting patients, doctors and administrators across South Africa.
+            </div>
+
+            <div style="display:flex;gap:12px;margin-top:22px;flex-wrap:wrap;">
+                <div style="background:rgba(255,255,255,0.11);
+                            backdrop-filter:blur(10px);
+                            border:1px solid rgba(255,255,255,0.16);
+                            border-radius:12px;padding:14px 16px;
+                            flex:1;min-width:150px;">
+                    <div style="font-size:22px;font-weight:700;color:white;
+                                font-family:'Cormorant Garamond',serif;line-height:1;">
+                        2,400+
+                    </div>
+                    <div style="font-size:12px;color:rgba(255,255,255,0.62);margin-top:4px;">
+                        Patients monitored
+                    </div>
+                </div>
+                <div style="background:rgba(255,255,255,0.11);
+                            backdrop-filter:blur(10px);
+                            border:1px solid rgba(255,255,255,0.16);
+                            border-radius:12px;padding:14px 16px;
+                            flex:1;min-width:150px;">
+                    <div style="font-size:22px;font-weight:700;color:white;
+                                font-family:'Cormorant Garamond',serif;line-height:1;">
+                        98.2%
+                    </div>
+                    <div style="font-size:12px;color:rgba(255,255,255,0.62);margin-top:4px;">
+                        Alert accuracy
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>

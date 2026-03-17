@@ -9,17 +9,18 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Register — HealthSpark</title>
+    <title>Create Account — HealthSpark</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
 <body class="auth-body">
 
-    <div class="auth-wrapper">
+    <!-- ── Left Panel: Form ──────────────────────────── -->
+    <div class="auth-panel" style="overflow-y:auto;max-height:100vh;">
 
         <div class="auth-brand">
             <div class="auth-brand-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                      stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
@@ -28,108 +29,185 @@
             <div class="auth-brand-name">HealthSpark</div>
         </div>
 
-        <div class="auth-card">
-            <div class="auth-card-header">
-                <div class="auth-title">Create your account</div>
-                <div class="auth-sub">Join HealthSpark to start monitoring your health</div>
+        <div class="auth-card-header">
+            <div class="auth-title">Create your account</div>
+            <div class="auth-sub">
+                Join HealthSpark to start monitoring your health
             </div>
+        </div>
 
-            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-            {
-                <div class="auth-error">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                        <line x1="12" y1="9" x2="12" y2="13" />
-                        <line x1="12" y1="17" x2="12.01" y2="17" />
-                    </svg>
-                    @Model.ErrorMessage
-                </div>
-            }
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="auth-error">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                @Model.ErrorMessage
+            </div>
+        }
 
-            <form asp-action="Register" asp-controller="Account" method="post">
-                @Html.AntiForgeryToken()
+        <form asp-action="Register" asp-controller="Account" method="post">
+            @Html.AntiForgeryToken()
 
-                <div class="form-grid-2">
-                    <div class="form-group">
-                        <label asp-for="FullName" class="form-label">Full Name</label>
-                        <input asp-for="FullName"
-                               class="form-input"
-                               placeholder="John Obi" />
-                        <span asp-validation-for="FullName" class="field-error"></span>
-                    </div>
-
-                    <div class="form-group">
-                        <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
-                        <input asp-for="PhoneNumber"
-                               class="form-input"
-                               placeholder="+44 7700 900000" />
-                        <span asp-validation-for="PhoneNumber" class="field-error"></span>
-                    </div>
-                </div>
-
+            <!-- Full name + Phone -->
+            <div class="form-grid-2">
                 <div class="form-group">
-                    <label asp-for="Email" class="form-label">Email Address</label>
-                    <input asp-for="Email"
+                    <label asp-for="FullName" class="form-label">Full Name</label>
+                    <input asp-for="FullName"
                            class="form-input"
-                           placeholder="you@example.com"
-                           autocomplete="email" />
-                    <span asp-validation-for="Email" class="field-error"></span>
+                           placeholder="Sipho Ndlovu" />
+                    <span asp-validation-for="FullName" class="field-error"></span>
                 </div>
-
-                <div class="form-grid-2">
-                    <div class="form-group">
-                        <label asp-for="Password" class="form-label">Password</label>
-                        <input asp-for="Password"
-                               class="form-input"
-                               placeholder="Min. 6 characters"
-                               autocomplete="new-password" />
-                        <span asp-validation-for="Password" class="field-error"></span>
-                    </div>
-
-                    <div class="form-group">
-                        <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
-                        <input asp-for="ConfirmPassword"
-                               class="form-input"
-                               placeholder="Repeat password"
-                               autocomplete="new-password" />
-                        <span asp-validation-for="ConfirmPassword" class="field-error"></span>
-                    </div>
+                <div class="form-group">
+                    <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
+                    <input asp-for="PhoneNumber"
+                           class="form-input"
+                           placeholder="+27 82 000 0000" />
+                    <span asp-validation-for="PhoneNumber" class="field-error"></span>
                 </div>
-
-                <div class="form-grid-2">
-                    <div class="form-group">
-                        <label asp-for="DateOfBirth" class="form-label">Date of Birth</label>
-                        <input asp-for="DateOfBirth"
-                               class="form-input"
-                               type="date" />
-                        <span asp-validation-for="DateOfBirth" class="field-error"></span>
-                    </div>
-
-                    <div class="form-group">
-                        <label asp-for="Gender" class="form-label">Gender</label>
-                        <select asp-for="Gender" class="form-select">
-                            <option value="">Select gender</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
-                        <span asp-validation-for="Gender" class="field-error"></span>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-full">
-                    Create Account
-                </button>
-
-            </form>
-
-            <div class="auth-footer">
-                Already have an account?
-                <a href="@Url.Action("Login", "Account")">Sign in</a>
             </div>
 
+            <!-- Email -->
+            <div class="form-group">
+                <label asp-for="Email" class="form-label">Email Address</label>
+                <input asp-for="Email"
+                       class="form-input"
+                       placeholder="you@example.com"
+                       autocomplete="email" />
+                <span asp-validation-for="Email" class="field-error"></span>
+            </div>
+
+            <!-- Password + Confirm -->
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label asp-for="Password" class="form-label">Password</label>
+                    <input asp-for="Password"
+                           class="form-input"
+                           placeholder="Min. 6 characters"
+                           autocomplete="new-password" />
+                    <span asp-validation-for="Password" class="field-error"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+                    <input asp-for="ConfirmPassword"
+                           class="form-input"
+                           placeholder="Repeat password"
+                           autocomplete="new-password" />
+                    <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+                </div>
+            </div>
+
+            <!-- DOB + Gender -->
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label asp-for="DateOfBirth" class="form-label">Date of Birth</label>
+                    <input asp-for="DateOfBirth"
+                           class="form-input"
+                           type="date" />
+                    <span asp-validation-for="DateOfBirth" class="field-error"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Gender" class="form-label">Gender</label>
+                    <select asp-for="Gender" class="form-select">
+                        <option value="">Select gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other / Prefer not to say</option>
+                    </select>
+                    <span asp-validation-for="Gender" class="field-error"></span>
+                </div>
+            </div>
+
+            <!-- POPIA consent -->
+            <div class="form-check-row" style="margin-bottom:20px;">
+                <label class="form-check" style="align-items:flex-start;gap:10px;">
+                    <input type="checkbox" name="PopiaConsent" required
+                           style="margin-top:2px;flex-shrink:0;" />
+                    <span style="font-size:12.5px;color:var(--slate-soft);line-height:1.5;">
+                        I consent to HealthSpark processing my health data for clinical
+                        monitoring purposes in accordance with
+                        <a href="#" style="color:var(--forest);font-weight:600;">POPIA</a>.
+                    </span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full"
+                    style="padding:12px 18px;font-size:14px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <line x1="19" y1="8" x2="19" y2="14" />
+                    <line x1="22" y1="11" x2="16" y2="11" />
+                </svg>
+                Create Account
+            </button>
+
+        </form>
+
+        <div class="auth-footer">
+            Already have an account?
+            <a href="@Url.Action("Login", "Account")">Sign in</a>
+        </div>
+
+    </div>
+
+    <!-- ── Right Panel: Hero Image ───────────────────── -->
+    <div class="auth-hero">
+
+        <!-- Badge -->
+        <div class="auth-hero-pill">
+            <span class="auth-hero-pill-dot"></span>
+            Free to join &middot; No credit card needed
+        </div>
+
+        <img src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1200&q=80"
+             alt="Patient health consultation"
+             loading="eager" />
+
+        <!-- Bottom copy -->
+        <div class="auth-hero-text">
+            <div class="auth-hero-quote">
+                "Your health, your data,<br />always in your hands."
+            </div>
+            <div class="auth-hero-caption">
+                Log vitals, report symptoms, and stay connected with your
+                doctor — from anywhere in South Africa.
+            </div>
+
+            <!-- Feature checklist -->
+            <div style="margin-top:22px;display:flex;flex-direction:column;gap:10px;">
+                @foreach (var feature in new[] {
+                                "AI-powered symptom assessment",
+                                "Real-time vital monitoring",
+                                "Direct doctor communication",
+                                "Emergency contacts always visible"
+                                })
+                {
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:20px;height:20px;
+                                        background:rgba(110,240,160,0.20);
+                                        border:1px solid rgba(110,240,160,0.35);
+                                        border-radius:50%;display:flex;
+                                        align-items:center;justify-content:center;
+                                        flex-shrink:0;">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                                 stroke="#6EF0A0" stroke-width="3"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                        </div>
+                        <span style="font-size:13px;color:rgba(255,255,255,0.78);">
+                            @feature
+                        </span>
+                    </div>
+                }
+            </div>
         </div>
 
     </div>

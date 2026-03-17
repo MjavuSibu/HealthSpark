@@ -10,6 +10,7 @@
 </head>
 <body>
 
+    <!-- ── SVG Icon Sprite ─────────────────────────────────── -->
     <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
         <symbol id="ic-activity" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></symbol>
         <symbol id="ic-dashboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></symbol>
@@ -34,70 +35,118 @@
         <symbol id="ic-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></symbol>
         <symbol id="ic-note" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></symbol>
         <symbol id="ic-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></symbol>
+        <symbol id="ic-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></symbol>
         <symbol id="ic-droplets" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z" /><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97" /></symbol>
     </svg>
 
+    <!-- ── App Shell ───────────────────────────────────────── -->
     <div class="app-wrapper">
+
         @await Html.PartialAsync(ViewData["Sidebar"]?.ToString() ?? "")
+
         <div class="main">
+
+            <!-- ── Topbar ──────────────────────────────────── -->
             <div class="topbar">
                 <div class="topbar-title">@ViewData["Title"]</div>
+
                 <div class="topbar-actions">
-                    <div class="icon-btn">
+
+                    <!-- Alert bell — links to role-appropriate alerts page -->
+                    <a href="@Url.Action("Alerts", ViewData["Sidebar"]?.ToString()?.Contains("Doctor") == true ? "Doctor" : ViewData["Sidebar"]?.ToString()?.Contains("Admin") == true ? "Admin" : "Patient")"
+                       class="icon-btn" title="Alerts">
                         <svg width="16" height="16"><use href="#ic-bell" /></svg>
                         @if ((int)(ViewData["AlertCount"] ?? 0) > 0)
                         {
                             <span class="notif-dot"></span>
                         }
-                    </div>
+                    </a>
+
+                    <!-- User pill -->
+                    @if (!string.IsNullOrEmpty(ViewData["CurrentUserName"]?.ToString()))
+                    {
+                        <div style="display:flex;align-items:center;gap:8px;
+                                    padding:5px 12px 5px 6px;
+                                    background:var(--stone);
+                                    border:1px solid var(--border-soft);
+                                    border-radius:100px;cursor:default;">
+                            <div style="width:26px;height:26px;border-radius:50%;
+                                        background:linear-gradient(135deg,var(--forest-light),var(--forest));
+                                        display:flex;align-items:center;justify-content:center;
+                                        font-size:10px;font-weight:700;color:white;flex-shrink:0;">
+                                @{
+                                    var topName = ViewData["CurrentUserName"]?.ToString() ?? "";
+                                    @(topName.Length >= 2 ? topName[..2].ToUpper() : topName.ToUpper())
+                                }
+                            </div>
+                            <span style="font-size:12.5px;font-weight:500;
+                                         color:var(--slate-mid);max-width:130px;
+                                         white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                @ViewData["CurrentUserName"]
+                            </span>
+                        </div>
+                    }
+
                     @await RenderSectionAsync("TopbarActions", required: false)
                 </div>
             </div>
+
+            <!-- ── Page Content ────────────────────────────── -->
             <div class="page-content">
                 @RenderBody()
             </div>
+
         </div>
     </div>
 
     <script src="~/js/site.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
-    <!-- Logout Confirmation Modal -->
-    <div class="modal-overlay" id="logoutModal">
-        <div class="modal" style="max-width:380px;text-align:center;">
 
-            <div style="width:56px;height:56px;
-                background:rgba(232,128,154,0.12);
-                border-radius:50%;
-                display:flex;align-items:center;justify-content:center;
-                margin:0 auto 16px;
-                color:var(--danger);">
+    <!-- ── Logout Confirmation Modal ──────────────────────── -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal" style="max-width:400px;text-align:center;">
+
+            <!-- Icon -->
+            <div style="width:60px;height:60px;
+                    background:var(--critical-bg);
+                    border:1px solid var(--critical-border);
+                    border-radius:50%;
+                    display:flex;align-items:center;justify-content:center;
+                    margin:0 auto 20px;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                      stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
+                     stroke-linecap="round" stroke-linejoin="round"
+                     style="color:var(--critical);">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                     <polyline points="16 17 21 12 16 7" />
                     <line x1="21" y1="12" x2="9" y2="12" />
                 </svg>
             </div>
 
-            <div class="modal-title" style="text-align:center;">
-                Sign Out
-            </div>
+            <div class="modal-title" style="text-align:center;">Sign Out</div>
             <div class="modal-sub" style="text-align:center;">
                 Are you sure you want to sign out of HealthSpark?
                 Any unsaved changes will be lost.
             </div>
 
-            <div style="display:flex;gap:10px;margin-top:22px;">
+            <div style="display:flex;gap:10px;margin-top:24px;">
                 <button class="btn btn-ghost"
                         style="flex:1;justify-content:center;"
                         onclick="closeLogoutModal()">
                     Cancel
                 </button>
                 <a href="@Url.Action("Logout", "Account")"
-                   class="btn btn-primary"
+                   class="btn btn-danger"
                    style="flex:1;justify-content:center;
-                background:linear-gradient(135deg,#E8809A,#c04060);">
+                      background:var(--critical);color:white;
+                      border:none;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
                     Yes, Sign Out
                 </a>
             </div>
@@ -106,17 +155,13 @@
     </div>
 
     <script>
-        function openLogoutModal()  {
-          document.getElementById('logoutModal').classList.add('open');
-        }
-        function closeLogoutModal() {
-          document.getElementById('logoutModal').classList.remove('open');
-        }
+        function openLogoutModal()  { document.getElementById('logoutModal').classList.add('open'); }
+        function closeLogoutModal() { document.getElementById('logoutModal').classList.remove('open'); }
 
-        document.getElementById('logoutModal')
-          .addEventListener('click', function(e) {
+        document.getElementById('logoutModal').addEventListener('click', function(e) {
             if (e.target === this) closeLogoutModal();
-          });
+        });
     </script>
+
 </body>
 </html>

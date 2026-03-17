@@ -10,7 +10,7 @@
 }
 
 <!-- Header Row -->
-<div class="search-row">
+<div class="search-row" style="margin-bottom:22px;">
     <div class="search-wrap">
         <span class="s-icon">
             <svg width="14" height="14"><use href="#ic-search" /></svg>
@@ -20,8 +20,7 @@
                placeholder="Search appointments..."
                onkeyup="filterTable('apptSearch', 'apptTable')" />
     </div>
-    <button class="btn btn-primary"
-            onclick="openModal('bookApptModal')">
+    <button class="btn btn-primary" onclick="openModal('bookApptModal')">
         <svg width="14" height="14"><use href="#ic-plus" /></svg>
         Book Appointment
     </button>
@@ -31,7 +30,7 @@
 <div class="card">
     <div class="card-header">
         <div class="card-title">My Appointments</div>
-        <span style="font-size:12.5px;color:var(--text-soft);">
+        <span style="font-size:12.5px;color:var(--slate-muted);">
             @Model.UpcomingAppointments.Count total
         </span>
     </div>
@@ -51,7 +50,16 @@
                 {
                     <tr>
                         <td colspan="5">
-                            <div class="empty-state">
+                            <div class="empty-state" style="padding:32px 0;">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="1.5"
+                                     stroke-linecap="round" stroke-linejoin="round"
+                                     style="margin:0 auto 10px;display:block;color:var(--border);">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                    <line x1="16" y1="2" x2="16" y2="6" />
+                                    <line x1="8" y1="2" x2="8" y2="6" />
+                                    <line x1="3" y1="10" x2="21" y2="10" />
+                                </svg>
                                 No appointments yet. Book your first appointment above.
                             </div>
                         </td>
@@ -59,40 +67,31 @@
                 }
                 else
                 {
-                    @foreach (var appt in Model.UpcomingAppointments)
+                    foreach (var appt in Model.UpcomingAppointments)
                     {
+                        var statusClass = appt.Status == "confirmed" ? "badge-active"
+                        : appt.Status == "cancelled" ? "badge-inactive"
+                        : appt.Status == "completed" ? "badge-stable"
+                        : "badge-pending";
                         <tr>
-                            <td>@appt.Date</td>
-                            <td>@appt.TimeSlot</td>
+                            <td style="font-weight:500;">@appt.Date</td>
+                            <td style="color:var(--slate-soft);">@appt.TimeSlot</td>
                             <td>@appt.Reason</td>
+                            <td><span class="badge @statusClass">@appt.Status</span></td>
                             <td>
-                                <span class="badge
-                          @(appt.Status == "confirmed" ? "badge-active" :
-                                                          appt.Status == "cancelled" ? "badge-inactive" :
-                                                          appt.Status == "completed" ? "badge-active" :
-                                                                                        "badge-pending")">
-                            @appt.Status
-                        </span>
-                    </td>
-                    <td>
-                        @if (appt.Status == "pending" || appt.Status == "confirmed")
+                                @if (appt.Status == "pending" || appt.Status == "confirmed")
                                 {
                                     <form asp-action="CancelAppointment"
                                           asp-controller="Patient"
                                           method="post"
                                           style="display:inline;">
                                         @Html.AntiForgeryToken()
-                                        <input type="hidden"
-                                               name="appointmentId"
-                                               value="@appt.Id" />
+                                        <input type="hidden" name="appointmentId" value="@appt.Id" />
                                         <button type="submit"
                                                 class="tbl-btn tbl-btn-flag"
                                                 title="Cancel appointment"
-                                                onclick="return confirm(
-                                          'Are you sure you want to cancel this appointment?')">
-                                            <svg width="13" height="13">
-                                                <use href="#ic-trash" />
-                                            </svg>
+                                                onclick="return confirm('Cancel this appointment?')">
+                                            <svg width="13" height="13"><use href="#ic-trash" /></svg>
                                         </button>
                                     </form>
                                 }
@@ -109,18 +108,12 @@
 <div class="modal-overlay" id="bookApptModal">
     <div class="modal">
         <div class="modal-title">Book Appointment</div>
-        <div class="modal-sub">
-            Request an appointment with your assigned doctor.
-        </div>
-        <form asp-action="BookAppointment"
-              asp-controller="Patient"
-              method="post">
+        <div class="modal-sub">Request an appointment with your assigned doctor.</div>
+        <form asp-action="BookAppointment" asp-controller="Patient" method="post">
             @Html.AntiForgeryToken()
             <div class="form-group">
                 <label class="form-label">Preferred Date</label>
-                <input name="Date"
-                       class="form-input"
-                       type="date"
+                <input name="Date" class="form-input" type="date"
                        min="@DateTime.Now.ToString("yyyy-MM-dd")" />
             </div>
             <div class="form-group">
@@ -136,21 +129,12 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Reason for Appointment</label>
-                <textarea name="Reason"
-                          class="form-textarea"
-                          style="min-height:80px;"
-                          placeholder="Briefly describe why you would like to book...">
-        </textarea>
+                <textarea name="Reason" class="form-textarea"
+                          placeholder="Briefly describe why you would like to book..."></textarea>
             </div>
             <div class="modal-footer">
-                <button type="button"
-                        class="btn btn-ghost"
-                        onclick="closeModal('bookApptModal')">
-                    Cancel
-                </button>
-                <button type="submit" class="btn btn-primary">
-                    Request Appointment
-                </button>
+                <button type="button" class="btn btn-ghost" onclick="closeModal('bookApptModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Request Appointment</button>
             </div>
         </form>
     </div>
@@ -162,18 +146,14 @@
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
         function filterTable(inputId, tableId) {
-          const filter = document.getElementById(inputId).value.toLowerCase();
-          const rows   = document.querySelectorAll(`#${tableId} tbody tr`);
-          rows.forEach(row => {
-            row.style.display =
-              row.textContent.toLowerCase().includes(filter) ? '' : 'none';
-          });
+            const filter = document.getElementById(inputId).value.toLowerCase();
+            document.querySelectorAll(`#${tableId} tbody tr`).forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+            });
         }
 
         document.querySelectorAll('.modal-overlay').forEach(o => {
-          o.addEventListener('click', e => {
-            if (e.target === o) o.classList.remove('open');
-          });
+            o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
         });
     </script>
 }

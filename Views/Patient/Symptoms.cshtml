@@ -10,9 +10,9 @@
 }
 
 <!-- Header Row -->
-<div class="search-row">
+<div class="search-row" style="margin-bottom:22px;">
     <div style="flex:1;">
-        <div style="font-size:13px;color:var(--text-soft);">
+        <div style="font-size:13px;color:var(--slate-soft);">
             Log a symptom and receive an AI assessment based on your health profile.
         </div>
     </div>
@@ -25,28 +25,35 @@
 <div class="card">
     <div class="card-header">
         <div class="card-title">My Symptom Log</div>
-        <span style="font-size:12.5px;color:var(--text-soft);">
+        <span style="font-size:12.5px;color:var(--slate-muted);">
             @Model.RecentSymptoms.Count entries
         </span>
     </div>
     <div class="card-body">
         @if (!Model.RecentSymptoms.Any())
         {
-            <div class="empty-state">
-                No symptoms logged yet. Click Log Symptom to get started.
+            <div class="empty-state" style="padding:36px 0;">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.5"
+                     stroke-linecap="round" stroke-linejoin="round"
+                     style="margin:0 auto 12px;display:block;color:var(--border);">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                </svg>
+                No symptoms logged yet. Click <strong>Log Symptom</strong> to get started.
             </div>
         }
         else
         {
-            @foreach (var symptom in Model.RecentSymptoms)
+            foreach (var symptom in Model.RecentSymptoms)
             {
                 <div class="symptom-entry">
                     <div class="symptom-top">
                         <div>
                             <div class="symptom-desc">@symptom.Description</div>
                             <div class="symptom-meta">
-                                Area: @symptom.BodyArea ·
-                                Severity: @symptom.Severity ·
+                                Area: @symptom.BodyArea &middot;
+                                Severity: @symptom.Severity &middot;
                                 @symptom.LoggedAt.ToString("dd MMM yyyy")
                             </div>
                         </div>
@@ -58,7 +65,7 @@
                         }
                         else
                         {
-                            <span class="badge badge-pending">Pending Assessment</span>
+                            <span class="badge badge-pending">Pending</span>
                         }
                     </div>
 
@@ -76,9 +83,7 @@
                                     @symptom.AiAssessment.UrgencyLevel.ToUpper() Urgency
                                 </div>
                             </div>
-                            <div class="ai-explanation">
-                                @symptom.AiAssessment.Explanation
-                            </div>
+                            <div class="ai-explanation">@symptom.AiAssessment.Explanation</div>
                             <div class="ai-recommendation">
                                 <div class="ai-rec-icon">
                                     <svg width="14" height="14"><use href="#ic-check-circle" /></svg>
@@ -87,8 +92,7 @@
                             </div>
                             <div class="ai-footer">
                                 <div class="ai-timestamp">
-                                    Generated @symptom.AiAssessment.GeneratedAt.ToString("dd MMM yyyy") ·
-                                    @symptom.AiAssessment.ModelUsed
+                                    Generated @symptom.AiAssessment.GeneratedAt.ToString("dd MMM yyyy") &middot; @symptom.AiAssessment.ModelUsed
                                 </div>
                             </div>
                         </div>
@@ -97,12 +101,8 @@
                                     !string.IsNullOrEmpty(symptom.AiAssessment.DoctorNote))
                         {
                             <div class="doctor-override">
-                                <div class="override-label">
-                                    Doctor's Response
-                                </div>
-                                <div class="note-text">
-                                    @symptom.AiAssessment.DoctorNote
-                                </div>
+                                <div class="override-label">Doctor's Response</div>
+                                <div class="note-text">@symptom.AiAssessment.DoctorNote</div>
                             </div>
                         }
                     }
@@ -124,16 +124,14 @@
     <div class="modal">
         <div class="modal-title">Log a Symptom</div>
         <div class="modal-sub">
-            Describe your symptom and our AI will assess it
-            based on your health profile.
+            Describe your symptom and our AI will assess it based on your health profile.
         </div>
         <form asp-action="LogSymptom" asp-controller="Patient" method="post">
             @Html.AntiForgeryToken()
             <div class="form-group">
                 <label class="form-label">Describe your symptom</label>
                 <textarea name="Description" class="form-textarea"
-                          placeholder="e.g. I've been experiencing a dull headache since this morning...">
-        </textarea>
+                          placeholder="e.g. I've been experiencing a dull headache since this morning..."></textarea>
             </div>
             <div class="vitals-form-grid">
                 <div class="form-group">
@@ -157,30 +155,31 @@
                 </div>
             </div>
 
-            <div style="padding:12px 14px;background:var(--ai-bg);
-                  border:1px solid var(--ai-border);border-radius:9px;
-                  font-size:12.5px;color:var(--text-mid);line-height:1.5;">
-                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <!-- AI info notice -->
+            <div style="padding:12px 14px;
+                        background:var(--forest-mist);
+                        border:1px solid var(--border);
+                        border-radius:var(--radius-sm);
+                        font-size:12.5px;color:var(--slate-mid);line-height:1.5;">
+                <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">
                     <div class="ai-icon" style="width:18px;height:18px;">
                         <svg width="10" height="10"><use href="#ic-sparkles" /></svg>
                     </div>
-                    <span style="font-size:10.5px;font-weight:700;
-                       color:var(--deep-purple);text-transform:uppercase;
-                       letter-spacing:1px;">AI Assessment</span>
+                    <span style="font-size:10.5px;font-weight:700;color:var(--forest);
+                                 text-transform:uppercase;letter-spacing:1px;">
+                        AI Assessment
+                    </span>
                 </div>
-                After submitting, our AI will assess your symptom using your
-                existing conditions, medications and recent vitals.
-                The result will appear here and be shared with your doctor.
+                After submitting, our AI will assess your symptom using your existing
+                conditions and recent vitals. The result will appear here and be shared
+                with your doctor.
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-ghost"
-                        onclick="closeModal('logSymptomModal')">
-                    Cancel
-                </button>
+                <button type="button" class="btn btn-ghost" onclick="closeModal('logSymptomModal')">Cancel</button>
                 <button type="submit" class="btn btn-primary">
                     <svg width="13" height="13"><use href="#ic-sparkles" /></svg>
-                    Submit & Analyse
+                    Submit &amp; Analyse
                 </button>
             </div>
         </form>
@@ -191,11 +190,8 @@
     <script>
         function openModal(id)  { document.getElementById(id).classList.add('open'); }
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
         document.querySelectorAll('.modal-overlay').forEach(o => {
-          o.addEventListener('click', e => {
-            if (e.target === o) o.classList.remove('open');
-          });
+            o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
         });
     </script>
 }

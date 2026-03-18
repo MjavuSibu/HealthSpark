@@ -1,40 +1,91 @@
 ﻿@model HealthSpark.ViewModels.DashboardViewModel
+@using System.Linq
 
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Patient Assignments";
     ViewData["ActivePage"] = "Assignments";
     ViewData["Sidebar"] = "_AdminSidebar";
+
+    var totalPatients = Model.AllPatients.Count;
+    var unassignedCount = Model.UnassignedPatients.Count;
+    var assignedCount = totalPatients - unassignedCount;
+    var coveragePct = totalPatients > 0 ? (int)((assignedCount / (double)totalPatients) * 100) : 100;
 }
 
-<div class="grid-2">
+<!-- Coverage bar -->
+<div class="card" style="margin-bottom:22px;">
+    <div class="card-body" style="padding:18px 24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div>
+                <div style="font-size:13px;font-weight:600;color:var(--slate);">
+                    Assignment Coverage
+                </div>
+                <div style="font-size:12px;color:var(--slate-soft);margin-top:2px;">
+                    @assignedCount of @totalPatients patients assigned to a doctor
+                </div>
+            </div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;
+                        color:@(coveragePct >= 90 ? "var(--stable)" : coveragePct >= 70 ? "var(--caution)" : "var(--critical)");">
+                @coveragePct%
+            </div>
+        </div>
+        <div class="progress-track" style="height:8px;">
+            <div class="progress-fill"
+                 style="width:@coveragePct%;
+                        background:@(coveragePct >= 90
+                                             ? "linear-gradient(90deg,var(--forest-light),var(--forest))"
+                                             : coveragePct >= 70
+                                             ? "linear-gradient(90deg,#E8A230,var(--caution))"
+                                             : "linear-gradient(90deg,#E05050,var(--critical))");">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid-2" style="margin-bottom:22px;">
 
     <!-- Unassigned Patients -->
-    <div class="card">
+    <div class="card" style="margin-bottom:0;">
         <div class="card-header">
             <div class="card-title">Unassigned Patients</div>
-            <span class="badge badge-pending">
-                @Model.UnassignedPatients.Count Pending
-            </span>
+            @if (Model.UnassignedPatients.Any())
+            {
+                <span class="badge badge-pending">@Model.UnassignedPatients.Count pending</span>
+            }
         </div>
         <div class="card-body">
             @if (!Model.UnassignedPatients.Any())
             {
-                <div class="empty-state">All patients are assigned.</div>
+                <div class="empty-state" style="padding:24px 0;">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1.5"
+                         stroke-linecap="round" stroke-linejoin="round"
+                         style="margin:0 auto 10px;display:block;color:var(--border);">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                    All patients are assigned.
+                </div>
             }
             else
             {
-                @foreach (var patient in Model.UnassignedPatients)
+                foreach (var patient in Model.UnassignedPatients)
                 {
+                    var initials = patient.FullName.Length >= 2
+                    ? patient.FullName[..2].ToUpper()
+                    : patient.FullName.ToUpper();
                     <div class="activity-item">
-                        <div class="avatar av-1">
-                            @patient.FullName[..2].ToUpper()
+                        <div class="avatar av-2">@initials</div>
+                        <div style="flex:1;min-width:0;">
+                            <div class="user-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                @patient.FullName
+                            </div>
+                            <div class="user-email" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                @patient.Email
+                            </div>
                         </div>
-                        <div style="flex:1;">
-                            <div class="user-name">@patient.FullName</div>
-                            <div class="user-email">@patient.Email</div>
-                        </div>
-                        <button class="btn btn-primary btn-sm"
+                        <button class="btn btn-primary btn-sm" style="flex-shrink:0;"
                                 onclick="openAssignModal('@patient.Id', '@patient.FullName')">
                             Assign
                         </button>
@@ -44,39 +95,56 @@
         </div>
     </div>
 
-    <!-- Doctor Workload -->
-    <div class="card">
+    <!-- Doctors panel -->
+    <div class="card" style="margin-bottom:0;">
         <div class="card-header">
-            <div class="card-title">Doctor Workload</div>
+            <div class="card-title">Doctors</div>
+            <span style="font-size:12.5px;color:var(--slate-soft);">
+                @Model.AllDoctors.Count registered
+            </span>
         </div>
         <div class="card-body">
-            @foreach (var doctor in Model.AllDoctors)
+            @if (!Model.AllDoctors.Any())
             {
-                var percentage = (int)Math.Min(
-                (double)doctor.Id.Length / 20 * 100, 100);
-
-                <div class="workload-item">
-                    <div class="workload-header">
-                        <span class="workload-name">@doctor.FullName</span>
-                        <span class="workload-count">@doctor.Email</span>
-                    </div>
-                    <div class="progress-track">
-                        <div class="progress-fill"
-                             style="width:@percentage%">
-                        </div>
-                    </div>
+                <div class="empty-state" style="padding:24px 0;">
+                    No doctors registered yet.
                 </div>
+            }
+            else
+            {
+                foreach (var doctor in Model.AllDoctors)
+                {
+                    var initials = doctor.FullName.Length >= 2
+                    ? doctor.FullName[..2].ToUpper()
+                    : doctor.FullName.ToUpper();
+                    <div class="activity-item">
+                        <img src="https://i.pravatar.cc/48?u=dr-@Uri.EscapeDataString(doctor.Email)"
+                             alt="@doctor.FullName"
+                             width="34" height="34"
+                             class="avatar-photo"
+                             onerror="this.outerHTML='<div class=\'avatar av-1\'>@initials</div>';" />
+                        <div style="flex:1;min-width:0;">
+                            <div class="user-name" ...>@doctor.FullName</div>
+                            <div class="user-email" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                @doctor.Email
+                            </div>
+                        </div>
+                        <span class="badge @(doctor.IsActive ? "badge-active" : "badge-inactive")">
+                            @(doctor.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </div>
+                }
             }
         </div>
     </div>
 
 </div>
 
-<!-- All Assignments Table -->
+<!-- All Patients assignment table -->
 <div class="card">
     <div class="card-header">
         <div class="card-title">All Patients</div>
-        <span style="font-size:12.5px;color:var(--text-soft);">
+        <span style="font-size:12.5px;color:var(--slate-soft);">
             @Model.AllPatients.Count total
         </span>
     </div>
@@ -85,37 +153,57 @@
             <thead>
                 <tr>
                     <th>Patient</th>
-                    <th>Status</th>
+                    <th>Account Status</th>
+                    <th>Assignment</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var patient in Model.AllPatients)
+                @if (!Model.AllPatients.Any())
                 {
                     <tr>
-                        <td>
-                            <div class="user-cell">
-                                <div class="avatar av-2">
-                                    @patient.FullName[..2].ToUpper()
-                                </div>
-                                <div>
-                                    <div class="user-name">@patient.FullName</div>
-                                    <div class="user-email">@patient.Email</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="badge @(patient.IsActive ? "badge-active" : "badge-inactive")">
-                                @(patient.IsActive ? "Active" : "Inactive")
-                            </span>
-                        </td>
-                        <td>
-                            <button class="btn btn-ghost btn-sm"
-                                    onclick="openAssignModal('@patient.Id', '@patient.FullName')">
-                                Assign / Reassign
-                            </button>
+                        <td colspan="4">
+                            <div class="empty-state">No patients registered yet.</div>
                         </td>
                     </tr>
+                }
+                else
+                {
+                    foreach (var patient in Model.AllPatients)
+                    {
+                        var initials = patient.FullName.Length >= 2
+                        ? patient.FullName[..2].ToUpper()
+                        : patient.FullName.ToUpper();
+                        var isUnassigned = Model.UnassignedPatients.Any(u => u.Id == patient.Id);
+
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="avatar av-2">@initials</div>
+                                    <div>
+                                        <div class="user-name">@patient.FullName</div>
+                                        <div class="user-email">@patient.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge @(patient.IsActive ? "badge-active" : "badge-inactive")">
+                                    @(patient.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge @(isUnassigned ? "badge-pending" : "badge-stable")">
+                                    @(isUnassigned ? "Unassigned" : "Assigned")
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-ghost btn-sm"
+                                        onclick="openAssignModal('@patient.Id', '@patient.FullName')">
+                                    @(isUnassigned ? "Assign" : "Reassign")
+                                </button>
+                            </td>
+                        </tr>
+                    }
                 }
             </tbody>
         </table>
@@ -127,41 +215,48 @@
     <div class="modal">
         <div class="modal-title">Assign Doctor</div>
         <div class="modal-sub" id="assignModalSub">
-            Select a doctor to assign this patient to.
+            Select a doctor to assign to this patient.
         </div>
-
-        <form asp-action="AssignPatient"
-              asp-controller="Admin"
-              method="post">
+        <form asp-action="AssignPatient" asp-controller="Admin" method="post">
             @Html.AntiForgeryToken()
             <input type="hidden" id="assignPatientId" name="patientId" />
 
-            <div class="assign-list">
-                @foreach (var doctor in Model.AllDoctors)
-                {
-                    <label class="assign-item">
-                        <input type="radio" name="doctorId" value="@doctor.Id" />
-                        <div class="avatar av-1">
-                            @doctor.FullName[..2].ToUpper()
-                        </div>
-                        <div>
-                            <div class="user-name">@doctor.FullName</div>
-                            <div class="user-email">@doctor.Email</div>
-                        </div>
-                    </label>
-                }
-            </div>
+            @if (!Model.AllDoctors.Any())
+            {
+                <div class="empty-state" style="padding:20px 0;">
+                    No doctors registered. Add a doctor first.
+                </div>
+            }
+            else
+            {
+                <div class="assign-list">
+                    @foreach (var doctor in Model.AllDoctors.Where(d => d.IsActive))
+                    {
+                        var initials = doctor.FullName.Length >= 2
+                        ? doctor.FullName[..2].ToUpper()
+                        : doctor.FullName.ToUpper();
+                        <label class="assign-item">
+                            <input type="radio" name="doctorId" value="@doctor.Id" />
+                            <img src="https://i.pravatar.cc/48?u=dr-@Uri.EscapeDataString(doctor.Email)"
+                                 alt="@doctor.FullName"
+                                 width="34" height="34"
+                                 class="avatar-photo"
+                                 onerror="this.outerHTML='<div class=\'avatar av-1\'>@initials</div>';" />
+                            <div>
+                                <div class="user-name">@doctor.FullName</div>
+                                <div class="user-email">@doctor.Email</div>
+                            </div>
+                        </label>
+                    }
+                </div>
+            }
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-ghost"
-                        onclick="closeModal('assignModal')">
+                <button type="button" class="btn btn-ghost" onclick="closeModal('assignModal')">
                     Cancel
                 </button>
-                <button type="submit" class="btn btn-primary">
-                    Confirm Assignment
-                </button>
+                <button type="submit" class="btn btn-primary">Confirm Assignment</button>
             </div>
-
         </form>
     </div>
 </div>
@@ -172,16 +267,24 @@
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
         function openAssignModal(patientId, patientName) {
-          document.getElementById('assignPatientId').value = patientId;
-          document.getElementById('assignModalSub').textContent =
-            `Assigning doctor to: ${patientName}`;
-          openModal('assignModal');
+            document.getElementById('assignPatientId').value = patientId;
+            document.getElementById('assignModalSub').textContent =
+                `Assigning doctor to: ${patientName}`;
+            openModal('assignModal');
         }
 
         document.querySelectorAll('.modal-overlay').forEach(o => {
-          o.addEventListener('click', e => {
-            if (e.target === o) o.classList.remove('open');
-          });
+            o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+        });
+
+        // Animate progress bar
+        document.addEventListener('DOMContentLoaded', () => {
+            const fill = document.querySelector('.progress-fill');
+            if (fill) {
+                const target = fill.style.width;
+                fill.style.width = '0%';
+                setTimeout(() => { fill.style.width = target; }, 100);
+            }
         });
     </script>
 }

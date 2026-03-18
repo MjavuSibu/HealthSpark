@@ -29,11 +29,6 @@
            href="@Url.Action("Assignments", "Admin")">
             <svg width="15" height="15"><use href="#ic-link" /></svg> Assignments
         </a>
-        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Appointments" ? "active" : "")"
-           href="@Url.Action("Appointments", "Admin")">
-            <svg width="15" height="15"><use href="#ic-calendar" /></svg> Appointments
-        </a>
-
         <div class="nav-section-label">System</div>
         <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Alerts" ? "active" : "")"
            href="@Url.Action("Alerts", "Admin")">
@@ -42,10 +37,6 @@
             {
                 <span class="nav-badge">@ViewData["AlertCount"]</span>
             }
-        </a>
-        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Settings" ? "active" : "")"
-           href="@Url.Action("Settings", "Admin")">
-            <svg width="15" height="15"><use href="#ic-settings" /></svg> Settings
         </a>
     </nav>
 

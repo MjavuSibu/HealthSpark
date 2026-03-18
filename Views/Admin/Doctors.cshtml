@@ -61,7 +61,11 @@
                         <tr>
                             <td>
                                 <div class="user-cell">
-                                    <div class="avatar av-1">@initials</div>
+                                    <img src="https://i.pravatar.cc/48?u=dr-@Uri.EscapeDataString(doctor.Email)"
+                                         alt="@doctor.FullName"
+                                         width="34" height="34"
+                                         class="avatar-photo"
+                                         onerror="this.outerHTML='<div class=\'avatar av-1\'>@initials</div>';" />
                                     <div>
                                         <div class="user-name">@doctor.FullName</div>
                                         <div class="user-email">@doctor.Email</div>

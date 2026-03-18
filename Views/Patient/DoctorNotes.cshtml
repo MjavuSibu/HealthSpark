@@ -17,11 +17,15 @@
 
     <div class="doctor-card">
         <div class="doctor-header">
-            <div class="doctor-avatar-lg av-1">
-                @((ViewBag.DoctorName as string)?.Length >= 2
-                                ? (ViewBag.DoctorName as string)![..2].ToUpper()
-                                : "DR")
-            </div>
+            @{
+                var doctorNameForAvatar = ViewBag.DoctorName as string ?? "Doctor";
+                var doctorEmailForAvatar = ViewBag.DoctorEmail as string ?? doctorNameForAvatar;
+            }
+            <img src="https://i.pravatar.cc/80?u=dr-@Uri.EscapeDataString(doctorEmailForAvatar)"
+                 alt="@doctorNameForAvatar"
+                 width="52" height="52"
+                 class="avatar-photo-lg"
+                 onerror="this.outerHTML='<div class=\'doctor-avatar-lg av-1\'>@(doctorNameForAvatar.Length >= 2 ? doctorNameForAvatar[..2].ToUpper() : "DR")</div>';" />
             <div>
                 <div class="doctor-fullname">@(ViewBag.DoctorName ?? "Your Doctor")</div>
                 <div class="doctor-spec">@(ViewBag.DoctorSpecialisation ?? "General Practice")</div>

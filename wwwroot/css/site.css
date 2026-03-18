@@ -2403,4 +2403,19 @@ tbody td {
         color: var(--critical);
         flex-shrink: 0;
     }
+
+    /* ── Photo avatars ────────────────────────────────────── */
+    .avatar-photo {
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 2px solid rgba(27,94,55,0.12);
+    }
+
+    .avatar-photo-lg {
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 2px solid rgba(27,94,55,0.15);
+    }
 }

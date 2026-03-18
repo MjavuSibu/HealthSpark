@@ -38,22 +38,37 @@ namespace HealthSpark.Controllers
             var appointments = await _firebaseService.GetAppointmentsByPatientAsync(patientId);
             var notes = await _firebaseService.GetNotesByPatientAsync(patientId);
 
+            // ── Load alerts for this patient ───────────────────
+            // Alerts are stored against the assigned doctor —
+            // load them only if the patient has an assigned doctor
+            var alertList = new List<Alert>();
+            if (!string.IsNullOrEmpty(patientProfile?.AssignedDoctorId))
+            {
+                var allDoctorAlerts = await _firebaseService
+                    .GetAlertsByDoctorAsync(patientProfile.AssignedDoctorId);
+
+                // Filter to only alerts that belong to this patient
+                alertList = allDoctorAlerts
+                    .Where(a => a.PatientId == patientId)
+                    .ToList();
+            }
+
             var viewModel = new DashboardViewModel
             {
                 CurrentUser = patient,
                 PatientProfile = patientProfile,
                 LatestVital = vitals.FirstOrDefault(),
-                RecentVitals = vitals.Take(5).ToList(),
+                RecentVitals = vitals.Take(7).ToList(),
                 RecentSymptoms = symptoms.Take(3).ToList(),
                 UpcomingAppointments = appointments
                     .Where(a => a.Status == "confirmed" || a.Status == "pending")
                     .ToList(),
-                LatestDoctorNote = notes.FirstOrDefault()
+                LatestDoctorNote = notes.FirstOrDefault(),
+                Alerts = alertList   // ← was never set before
             };
 
             return View(viewModel);
         }
-
         // ── Vitals ─────────────────────────────────────────
 
         public async Task<IActionResult> Vitals()

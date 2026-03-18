@@ -1,8 +1,1454 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    Layout = null;
 }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HealthSpark — Smart Health Monitoring for South Africa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+        :root {
+            --forest: #1B5E37;
+            --forest-mid: #2D7A50;
+            --forest-light: #4A9E6E;
+            --gold: #C9902A;
+            --gold-light: #FFF3DC;
+            --stone: #F6F7F9;
+            --white: #FFFFFF;
+            --slate: #1A2B22;
+            --slate-mid: #3D5247;
+            --slate-soft: #6B8078;
+            --slate-muted: #9DB0A8;
+            --critical: #C0392B;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--slate);
+            background: var(--white);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* ── NAV ──────────────────────────────────────── */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 18px 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+            .nav.scrolled {
+                background: rgba(255,255,255,0.96);
+                backdrop-filter: blur(12px);
+                box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+            }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--forest-light), var(--forest));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .nav-brand-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: -0.3px;
+            transition: color 0.3s;
+        }
+
+        .nav.scrolled .nav-brand-name {
+            color: var(--forest);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .nav-link {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.80);
+            transition: color 0.2s;
+        }
+
+        .nav.scrolled .nav-link {
+            color: var(--slate-soft);
+        }
+
+        .nav-link:hover {
+            color: white;
+        }
+
+        .nav.scrolled .nav-link:hover {
+            color: var(--forest);
+        }
+
+        .nav-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 22px;
+            background: var(--gold);
+            color: white;
+            border-radius: 100px;
+            font-size: 13.5px;
+            font-weight: 600;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(201,144,42,0.30);
+        }
+
+            .nav-cta:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 6px 20px rgba(201,144,42,0.40);
+            }
+
+        /* ── HERO ─────────────────────────────────────── */
+        .hero {
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(135deg, rgba(10,46,24,0.88) 0%, rgba(27,94,55,0.70) 50%, rgba(10,46,24,0.60) 100%), url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1600&q=85');
+            background-size: cover;
+            background-position: center;
+            transform: scale(1.02);
+            transition: transform 8s ease;
+        }
+
+            .hero-bg.loaded {
+                transform: scale(1);
+            }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 60px;
+            padding-top: 100px;
+        }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: rgba(201,144,42,0.18);
+            border: 1px solid rgba(201,144,42,0.35);
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #F5D08A;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            margin-bottom: 28px;
+            animation: fadeUp 0.8s ease both;
+        }
+
+        .hero-eyebrow-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--gold);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--gold);
+        }
+
+        .hero-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(48px, 7vw, 82px);
+            font-weight: 700;
+            color: white;
+            line-height: 1.05;
+            letter-spacing: -1px;
+            margin-bottom: 24px;
+            animation: fadeUp 0.8s 0.1s ease both;
+        }
+
+            .hero-title em {
+                font-style: italic;
+                color: #F5D08A;
+            }
+
+        .hero-sub {
+            font-size: 18px;
+            color: rgba(255,255,255,0.72);
+            line-height: 1.65;
+            max-width: 540px;
+            margin-bottom: 44px;
+            animation: fadeUp 0.8s 0.2s ease both;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            animation: fadeUp 0.8s 0.3s ease both;
+        }
+
+        .btn-hero-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            background: var(--gold);
+            color: white;
+            border-radius: 100px;
+            font-size: 15px;
+            font-weight: 600;
+            box-shadow: 0 6px 24px rgba(201,144,42,0.35);
+            transition: all 0.2s;
+        }
+
+            .btn-hero-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 32px rgba(201,144,42,0.45);
+            }
+
+        .btn-hero-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            background: rgba(255,255,255,0.10);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: white;
+            border-radius: 100px;
+            font-size: 15px;
+            font-weight: 500;
+            backdrop-filter: blur(8px);
+            transition: all 0.2s;
+        }
+
+            .btn-hero-ghost:hover {
+                background: rgba(255,255,255,0.18);
+                border-color: rgba(255,255,255,0.40);
+            }
+
+        /* Hero stats strip */
+        .hero-stats {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 2;
+            display: flex;
+            background: rgba(10,46,24,0.85);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            animation: fadeUp 0.8s 0.5s ease both;
+        }
+
+        .hero-stat {
+            flex: 1;
+            padding: 28px 40px;
+            border-right: 1px solid rgba(255,255,255,0.08);
+            text-align: center;
+        }
+
+            .hero-stat:last-child {
+                border-right: none;
+            }
+
+        .hero-stat-value {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: white;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .hero-stat-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.50);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        /* ── FEATURES ─────────────────────────────────── */
+        .section {
+            padding: 100px 60px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-eyebrow {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--forest);
+            margin-bottom: 14px;
+        }
+
+        .section-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(32px, 4vw, 52px);
+            font-weight: 700;
+            color: var(--slate);
+            line-height: 1.1;
+            letter-spacing: -0.5px;
+            margin-bottom: 16px;
+        }
+
+        .section-sub {
+            font-size: 16px;
+            color: var(--slate-soft);
+            line-height: 1.7;
+            max-width: 520px;
+            margin-bottom: 60px;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .feature-card {
+            border-radius: 20px;
+            overflow: hidden;
+            background: var(--white);
+            border: 1px solid rgba(0,0,0,0.06);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            transition: transform 0.25s, box-shadow 0.25s;
+        }
+
+            .feature-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 36px rgba(0,0,0,0.11);
+            }
+
+        .feature-card-img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .feature-card-body {
+            padding: 26px 28px 30px;
+        }
+
+        .feature-icon-wrap {
+            width: 44px;
+            height: 44px;
+            background: var(--forest);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .feature-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--slate);
+            margin-bottom: 10px;
+            letter-spacing: -0.2px;
+        }
+
+        .feature-desc {
+            font-size: 14px;
+            color: var(--slate-soft);
+            line-height: 1.7;
+        }
+
+        /* ── HOW IT WORKS ─────────────────────────────── */
+        .how-section {
+            background: var(--stone);
+            padding: 100px 0;
+        }
+
+        .how-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 60px;
+        }
+
+        .how-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .how-image-wrap {
+            position: relative;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.14);
+        }
+
+            .how-image-wrap img {
+                width: 100%;
+                height: 480px;
+                object-fit: cover;
+                display: block;
+            }
+
+        .how-badge {
+            position: absolute;
+            bottom: 24px;
+            left: 24px;
+            background: rgba(255,255,255,0.94);
+            backdrop-filter: blur(10px);
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        }
+
+        .how-badge-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--forest);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .how-badge-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--slate-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .how-badge-value {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--slate);
+            line-height: 1;
+        }
+
+        .steps-list {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .step {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            width: 44px;
+            height: 44px;
+            background: var(--forest);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 20px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-body {
+        }
+
+        .step-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--slate);
+            margin-bottom: 6px;
+        }
+
+        .step-desc {
+            font-size: 14px;
+            color: var(--slate-soft);
+            line-height: 1.65;
+        }
+
+        /* ── TESTIMONIALS ─────────────────────────────── */
+        .testimonials-section {
+            padding: 100px 0;
+            background: var(--white);
+        }
+
+        .testimonials-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 60px;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .testimonial-card {
+            background: var(--stone);
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+            .testimonial-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            }
+
+        .testimonial-quote {
+            font-size: 48px;
+            font-family: 'Cormorant Garamond', serif;
+            color: var(--forest);
+            line-height: 1;
+            margin-bottom: 16px;
+            opacity: 0.4;
+        }
+
+        .testimonial-text {
+            font-size: 15px;
+            color: var(--slate-mid);
+            line-height: 1.75;
+            margin-bottom: 28px;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .testimonial-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(27,94,55,0.15);
+        }
+
+        .testimonial-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--slate);
+        }
+
+        .testimonial-role {
+            font-size: 12px;
+            color: var(--slate-muted);
+            margin-top: 2px;
+        }
+
+        .testimonial-stars {
+            display: flex;
+            gap: 3px;
+            margin-bottom: 18px;
+        }
+
+        .star {
+            width: 14px;
+            height: 14px;
+            color: var(--gold);
+        }
+
+        /* ── TRUST BAND ───────────────────────────────── */
+        .trust-section {
+            background: var(--forest);
+            padding: 60px;
+        }
+
+        .trust-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .trust-item {
+            text-align: center;
+        }
+
+        .trust-item-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255,255,255,0.10);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.80);
+            margin: 0 auto 12px;
+        }
+
+        .trust-item-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.90);
+            margin-bottom: 4px;
+        }
+
+        .trust-item-sub {
+            font-size: 12px;
+            color: rgba(255,255,255,0.45);
+            line-height: 1.5;
+        }
+
+        /* ── EMERGENCY ────────────────────────────────── */
+        .emergency-section {
+            background: #0A1A0F;
+            padding: 40px 60px;
+        }
+
+        .emergency-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .emergency-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.35);
+            margin-bottom: 8px;
+        }
+
+        .emergency-numbers {
+            display: flex;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+
+        .emergency-item {
+            text-align: left;
+        }
+
+        .emergency-name-label {
+            font-size: 11.5px;
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 2px;
+        }
+
+        .emergency-num {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: #ff8f8f;
+        }
+
+        /* ── CTA SECTION ──────────────────────────────── */
+        .cta-section {
+            padding: 120px 60px;
+            text-align: center;
+            background: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+
+            .cta-section::before {
+                content: '';
+                position: absolute;
+                top: -200px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 800px;
+                height: 800px;
+                background: radial-gradient(circle, rgba(27,94,55,0.06) 0%, transparent 70%);
+                pointer-events: none;
+            }
+
+        .cta-inner {
+            position: relative;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        .cta-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(36px, 5vw, 56px);
+            font-weight: 700;
+            color: var(--slate);
+            line-height: 1.1;
+            letter-spacing: -0.5px;
+            margin-bottom: 20px;
+        }
+
+        .cta-sub {
+            font-size: 16px;
+            color: var(--slate-soft);
+            line-height: 1.7;
+            margin-bottom: 40px;
+        }
+
+        .cta-actions {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            border-radius: 100px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-cta-primary {
+            background: var(--forest);
+            color: white;
+            box-shadow: 0 6px 24px rgba(27,94,55,0.28);
+        }
+
+            .btn-cta-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 32px rgba(27,94,55,0.38);
+            }
+
+        .btn-cta-ghost {
+            background: transparent;
+            color: var(--slate-mid);
+            border: 1.5px solid rgba(0,0,0,0.12);
+        }
+
+            .btn-cta-ghost:hover {
+                border-color: var(--forest);
+                color: var(--forest);
+            }
+
+        /* ── FOOTER ───────────────────────────────────── */
+        .footer {
+            background: var(--slate);
+            padding: 40px 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .footer-brand {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.80);
+        }
+
+        .footer-copy {
+            font-size: 13px;
+            color: rgba(255,255,255,0.30);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-link {
+            font-size: 13px;
+            color: rgba(255,255,255,0.40);
+            transition: color 0.15s;
+        }
+
+            .footer-link:hover {
+                color: rgba(255,255,255,0.75);
+            }
+
+        /* ── ANIMATIONS ───────────────────────────────── */
+        @@keyframes fadeUp {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(24px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+
+            .reveal.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+        /* ── RESPONSIVE ───────────────────────────────── */
+        @@media (max-width: 1024px) {
+            .features-grid
+
+        {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .testimonials-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .trust-inner {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .how-grid {
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+
+        .how-image-wrap img {
+            height: 320px;
+        }
+
+        }
+
+        @@media (max-width: 768px) {
+            .nav
+
+        {
+            padding: 16px 24px;
+        }
+
+        .nav-links {
+            display: none;
+        }
+
+        .section, .how-inner,
+        .testimonials-inner {
+            padding: 60px 24px;
+        }
+
+        .features-grid,
+        .testimonials-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .trust-inner {
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .trust-section,
+        .emergency-section {
+            padding: 48px 24px;
+        }
+
+        .cta-section {
+            padding: 80px 24px;
+        }
+
+        .footer {
+            padding: 32px 24px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .hero-content {
+            padding: 0 24px;
+            padding-top: 90px;
+        }
+
+        .hero-stats {
+            flex-wrap: wrap;
+        }
+
+        .hero-stat {
+            flex: 1 1 50%;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .emergency-inner {
+            flex-direction: column;
+        }
+
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── Navigation ──────────────────────────────────────── -->
+    <nav class="nav" id="mainNav">
+        <div class="nav-brand">
+            <div class="nav-brand-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg>
+            </div>
+            <span class="nav-brand-name">HealthSpark</span>
+        </div>
+
+        <div class="nav-links">
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#how-it-works" class="nav-link">How it Works</a>
+            <a href="#testimonials" class="nav-link">Testimonials</a>
+        </div>
+
+        <a href="@Url.Action("Login", "Account")" class="nav-cta">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                <polyline points="10 17 15 12 10 7" />
+                <line x1="15" y1="12" x2="3" y2="12" />
+            </svg>
+            Sign In
+        </a>
+    </nav>
+
+    <!-- ── Hero ────────────────────────────────────────────── -->
+    <section class="hero">
+        <div class="hero-bg" id="heroBg"></div>
+
+        <div class="hero-content">
+            <div class="hero-eyebrow">
+                <span class="hero-eyebrow-dot"></span>
+                Built for South Africa
+            </div>
+            <h1 class="hero-title">
+                Your health,<br />
+                <em>monitored</em> and<br />
+                managed.
+            </h1>
+            <p class="hero-sub">
+                HealthSpark connects patients, doctors and administrators
+                in one intelligent platform — with real-time vital tracking,
+                AI-powered symptom assessment, and instant alerts.
+            </p>
+            <div class="hero-actions">
+                <a href="@Url.Action("Register", "Account")" class="btn-hero-primary">
+                    Get started — it's free
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                </a>
+                <a href="#how-it-works" class="btn-hero-ghost">
+                    See how it works
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats strip -->
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-value">2,400+</div>
+                <div class="hero-stat-label">Patients monitored</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value">98.2%</div>
+                <div class="hero-stat-label">Alert accuracy</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value">180+</div>
+                <div class="hero-stat-label">Doctors registered</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value">9 Provinces</div>
+                <div class="hero-stat-label">Coverage across SA</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Features ────────────────────────────────────────── -->
+    <section id="features">
+        <div class="section">
+            <p class="section-eyebrow reveal">What we do</p>
+            <h2 class="section-title reveal">
+                Everything you need to<br />stay on top of your health
+            </h2>
+            <p class="section-sub reveal">
+                From logging your blood pressure to receiving an AI-powered
+                assessment of your symptoms — HealthSpark does the heavy lifting.
+            </p>
+
+            <div class="features-grid">
+
+                <!-- Feature 1 -->
+                <div class="feature-card reveal">
+                    <img class="feature-card-img"
+                         src="https://images.unsplash.com/photo-1530026405186-ed1f139313f3?w=700&q=80"
+                         alt="Patient using health monitoring app"
+                         loading="lazy" />
+                    <div class="feature-card-body">
+                        <div class="feature-icon-wrap">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                            </svg>
+                        </div>
+                        <div class="feature-title">Real-Time Vital Tracking</div>
+                        <p class="feature-desc">
+                            Log blood pressure, heart rate, glucose, temperature
+                            and more. Every reading is analysed instantly and
+                            flagged if it falls outside safe ranges.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="feature-card reveal" style="transition-delay:0.1s;">
+                    <img class="feature-card-img"
+                         src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=700&q=80"
+                         alt="Doctor reviewing patient data on screen"
+                         loading="lazy" />
+                    <div class="feature-card-body">
+                        <div class="feature-icon-wrap">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                            </svg>
+                        </div>
+                        <div class="feature-title">AI Symptom Assessment</div>
+                        <p class="feature-desc">
+                            Describe a symptom and our AI — powered by Claude —
+                            assesses urgency, explains the likely cause, and
+                            recommends your next step.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="feature-card reveal" style="transition-delay:0.2s;">
+                    <img class="feature-card-img"
+                         src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=700&q=80"
+                         alt="Doctor and patient consultation"
+                         loading="lazy" />
+                    <div class="feature-card-body">
+                        <div class="feature-icon-wrap">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3" />
+                                <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4" />
+                                <circle cx="20" cy="10" r="2" />
+                            </svg>
+                        </div>
+                        <div class="feature-title">Connected Doctor Portal</div>
+                        <p class="feature-desc">
+                            Your assigned doctor sees your vitals, symptoms
+                            and AI assessments in real time. They can add
+                            clinical notes and send you alerts directly.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ── How it Works ─────────────────────────────────────── -->
+    <section id="how-it-works" class="how-section">
+        <div class="how-inner">
+            <div class="how-grid">
+
+                <!-- Image side -->
+                <div class="how-image-wrap reveal">
+                    <img src="https://images.unsplash.com/photo-1666214280391-8ff5bd3d9f5b?w=900&q=85"
+                         alt="Person checking health stats on phone"
+                         loading="lazy" />
+                    <div class="how-badge">
+                        <div class="how-badge-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="how-badge-label">Health Risk Score</div>
+                            <div class="how-badge-value">Stable — 14 / 100</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Steps side -->
+                <div>
+                    <p class="section-eyebrow reveal">Simple by design</p>
+                    <h2 class="section-title reveal">
+                        Up and running<br />in minutes
+                    </h2>
+                    <p class="section-sub reveal" style="margin-bottom:40px;">
+                        No complicated setup. Register, get assigned to a doctor,
+                        and start logging — it's that simple.
+                    </p>
+
+                    <div class="steps-list">
+                        <div class="step reveal">
+                            <div class="step-number">1</div>
+                            <div class="step-body">
+                                <div class="step-title">Create your free account</div>
+                                <p class="step-desc">
+                                    Register in under 2 minutes. Add your blood type,
+                                    existing conditions and allergies to your health profile.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="step reveal" style="transition-delay:0.1s;">
+                            <div class="step-number">2</div>
+                            <div class="step-body">
+                                <div class="step-title">Get assigned to a doctor</div>
+                                <p class="step-desc">
+                                    A system administrator assigns you to one of our
+                                    registered doctors. You'll see their details in your portal.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="step reveal" style="transition-delay:0.2s;">
+                            <div class="step-number">3</div>
+                            <div class="step-body">
+                                <div class="step-title">Log vitals and symptoms</div>
+                                <p class="step-desc">
+                                    Log your readings daily. Any abnormal values
+                                    trigger an instant alert to your doctor.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="step reveal" style="transition-delay:0.3s;">
+                            <div class="step-number">4</div>
+                            <div class="step-body">
+                                <div class="step-title">Stay informed, stay healthy</div>
+                                <p class="step-desc">
+                                    See your Health Risk Score, AI symptom assessments
+                                    and doctor notes — all in one clean dashboard.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Testimonials ─────────────────────────────────────── -->
+    <section id="testimonials" class="testimonials-section">
+        <div class="testimonials-inner">
+            <p class="section-eyebrow reveal">Real patients, real results</p>
+            <h2 class="section-title reveal">What our users say</h2>
+            <p class="section-sub reveal">
+                From Johannesburg to Cape Town — South Africans are taking
+                control of their health with HealthSpark.
+            </p>
+
+            <div class="testimonials-grid">
+
+                <!-- Testimonial 1 -->
+                <div class="testimonial-card reveal">
+                    <div class="testimonial-stars">
+                        @for (int i = 0; i < 5; i++)
+                        {
+                            <svg class="star" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                        }
+                    </div>
+                    <div class="testimonial-quote">"</div>
+                    <p class="testimonial-text">
+                        I have hypertension and used to forget to track my readings.
+                        HealthSpark sends my doctor an alert the moment something
+                        looks off. It genuinely feels like having a doctor watching over me.
+                    </p>
+                    <div class="testimonial-author">
+                        <img class="testimonial-avatar"
+                             src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=100&q=80"
+                             alt="Nomsa M." loading="lazy" />
+                        <div>
+                            <div class="testimonial-name">Nomsa M.</div>
+                            <div class="testimonial-role">Patient · Johannesburg, Gauteng</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Testimonial 2 -->
+                <div class="testimonial-card reveal" style="transition-delay:0.1s;">
+                    <div class="testimonial-stars">
+                        @for (int i = 0; i < 5; i++)
+                        {
+                            <svg class="star" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                        }
+                    </div>
+                    <div class="testimonial-quote">"</div>
+                    <p class="testimonial-text">
+                        As a general practitioner managing 40+ patients, having
+                        all their vitals in one place is a game changer. The AI
+                        assessments help me prioritise who needs attention first.
+                    </p>
+                    <div class="testimonial-author">
+                        <img class="testimonial-avatar"
+                             src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100&q=80"
+                             alt="Dr. Sipho Dlamini" loading="lazy" />
+                        <div>
+                            <div class="testimonial-name">Dr. Sipho Dlamini</div>
+                            <div class="testimonial-role">General Practitioner · Durban, KZN</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Testimonial 3 -->
+                <div class="testimonial-card reveal" style="transition-delay:0.2s;">
+                    <div class="testimonial-stars">
+                        @for (int i = 0; i < 5; i++)
+                        {
+                            <svg class="star" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                        }
+                    </div>
+                    <div class="testimonial-quote">"</div>
+                    <p class="testimonial-text">
+                        My mother is diabetic and lives in Limpopo while I'm
+                        in Cape Town. HealthSpark lets me stay on top of her
+                        glucose readings remotely. It has given our whole family peace of mind.
+                    </p>
+                    <div class="testimonial-author">
+                        <img class="testimonial-avatar"
+                             src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&q=80"
+                             alt="Lerato K." loading="lazy" />
+                        <div>
+                            <div class="testimonial-name">Lerato K.</div>
+                            <div class="testimonial-role">Patient · Cape Town, Western Cape</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Trust Band ───────────────────────────────────────── -->
+    <section class="trust-section">
+        <div class="trust-inner">
+
+            <div class="trust-item reveal">
+                <div class="trust-item-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                </div>
+                <div class="trust-item-label">POPIA Compliant</div>
+                <div class="trust-item-sub">Your health data is protected under South African law</div>
+            </div>
+
+            <div class="trust-item reveal" style="transition-delay:0.1s;">
+                <div class="trust-item-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                </div>
+                <div class="trust-item-label">Encrypted &amp; Secure</div>
+                <div class="trust-item-sub">Firebase Auth with HTTPS encryption on every request</div>
+            </div>
+
+            <div class="trust-item reveal" style="transition-delay:0.2s;">
+                <div class="trust-item-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.95 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.88 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                    </svg>
+                </div>
+                <div class="trust-item-label">24/7 Emergency Access</div>
+                <div class="trust-item-sub">SA emergency numbers always visible in your portal</div>
+            </div>
+
+            <div class="trust-item reveal" style="transition-delay:0.3s;">
+                <div class="trust-item-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                    </svg>
+                </div>
+                <div class="trust-item-label">AI-Powered</div>
+                <div class="trust-item-sub">Claude by Anthropic assesses your symptoms in seconds</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ── Emergency Numbers ────────────────────────────────── -->
+    <div class="emergency-section">
+        <div class="emergency-inner">
+            <div>
+                <div class="emergency-label">South African Emergency Contacts</div>
+                <div class="emergency-numbers">
+                    <div class="emergency-item">
+                        <div class="emergency-name-label">Ambulance (EMS)</div>
+                        <a href="tel:10177" class="emergency-num">10177</a>
+                    </div>
+                    <div class="emergency-item">
+                        <div class="emergency-name-label">Police</div>
+                        <a href="tel:10111" class="emergency-num">10111</a>
+                    </div>
+                    <div class="emergency-item">
+                        <div class="emergency-name-label">Netcare 911</div>
+                        <a href="tel:0824446911" class="emergency-num">082 444 6911</a>
+                    </div>
+                    <div class="emergency-item">
+                        <div class="emergency-name-label">ER24</div>
+                        <a href="tel:0842124" class="emergency-num">084 124</a>
+                    </div>
+                </div>
+            </div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.25);max-width:240px;line-height:1.6;">
+                If you are experiencing a medical emergency, call the numbers above immediately. Do not wait.
+            </div>
+        </div>
+    </div>
+
+    <!-- ── CTA ──────────────────────────────────────────────── -->
+    <section class="cta-section">
+        <div class="cta-inner">
+            <h2 class="cta-title reveal">
+                Take control of<br />your health today
+            </h2>
+            <p class="cta-sub reveal">
+                Join thousands of South Africans already using HealthSpark
+                to monitor their health, connect with doctors, and live better.
+            </p>
+            <div class="cta-actions reveal">
+                <a href="@Url.Action("Register", "Account")" class="btn-cta btn-cta-primary">
+                    Create free account
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                </a>
+                <a href="@Url.Action("Login", "Account")" class="btn-cta btn-cta-ghost">
+                    Sign in to your account
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Footer ───────────────────────────────────────────── -->
+    <footer class="footer">
+        <div class="footer-brand">HealthSpark</div>
+        <div class="footer-copy">
+            &copy; @DateTime.Now.Year HealthSpark · Built for South Africa · POPIA Compliant
+        </div>
+        <div class="footer-links">
+            <a href="@Url.Action("Login", "Account")" class="footer-link">Sign In</a>
+            <a href="@Url.Action("Register", "Account")" class="footer-link">Register</a>
+            <a href="@Url.Action("Privacy", "Home")" class="footer-link">Privacy</a>
+        </div>
+    </footer>
+
+    <script>
+        // ── Sticky nav ─────────────────────────────────────────
+        const nav = document.getElementById('mainNav');
+        window.addEventListener('scroll', () => {
+            nav.classList.toggle('scrolled', window.scrollY > 60);
+        });
+
+        // ── Hero image parallax reveal ─────────────────────────
+        const heroBg = document.getElementById('heroBg');
+        window.addEventListener('load', () => {
+            heroBg.classList.add('loaded');
+        });
+
+        // ── Scroll reveal ──────────────────────────────────────
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    </script>
+
+</body>
+</html>

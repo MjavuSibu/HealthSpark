@@ -11,17 +11,15 @@
     ViewData["AlertCount"] = Model.Alerts.Count;
 
     var v = Model.LatestVital;
-    var flagCount = Model.RecentVitals.Count(x => x.IsFlagged);
 
-    // Colour classes for each vital card
     var bpClass  = v == null ? "vital-card--nodata"
                  : v.BloodPressureSystolic > 140 ? "vital-card--critical"
                  : v.BloodPressureSystolic > 130 ? "vital-card--caution"
                  : "vital-card--normal";
 
     var hrClass  = v == null ? "vital-card--nodata"
-                 : (v.HeartRate > 100 || (v.HeartRate < 60 && v.HeartRate > 0))
-                 ? "vital-card--critical" : "vital-card--normal";
+                 : (v.HeartRate > 100 || (v.HeartRate < 60 && v.HeartRate > 0)) ? "vital-card--critical"
+                 : "vital-card--normal";
 
     var glcClass = v == null ? "vital-card--nodata"
                  : v.BloodGlucose > 11 ? "vital-card--critical"
@@ -38,14 +36,17 @@
                  : (v.SleepHours < 7 && v.SleepHours > 0) ? "vital-card--caution"
                  : "vital-card--normal";
 
-    var h2oClass = v == null ? "vital-card--nodata"
+    var wtrClass = v == null ? "vital-card--nodata"
                  : (v.WaterIntakeLitres < 1 && v.WaterIntakeLitres > 0) ? "vital-card--critical"
                  : (v.WaterIntakeLitres < 2 && v.WaterIntakeLitres > 0) ? "vital-card--caution"
                  : "vital-card--normal";
+
+    var flagCount = Model.RecentVitals.Count(x => x.IsFlagged);
+    var overallClass = flagCount > 0 ? "vital-card--critical" : "vital-card--normal";
 }
 
 <!-- Header Row -->
-<div class="search-row" style="margin-bottom:22px;">
+<div class="search-row">
     <div style="flex:1;">
         <div style="font-size:13px;color:var(--slate-soft);">
             Showing your most recent vitals and full history.
@@ -56,12 +57,11 @@
     </button>
 </div>
 
-<!-- Latest Vitals Grid -->
+<!-- Latest Vital Cards -->
 @if (v != null)
 {
     <div class="vitals-grid" style="margin-bottom:24px;">
 
-        <!-- Blood Pressure -->
         <div class="vital-card @bpClass">
             <div class="vital-label">Blood Pressure</div>
             <div class="vital-value" style="font-size:22px;">
@@ -73,16 +73,14 @@
             else                                     { <span class="vital-ok"><svg width="10" height="10"><use href="#ic-check-circle"/></svg> Normal</span> }
         </div>
 
-        <!-- Heart Rate -->
         <div class="vital-card @hrClass">
             <div class="vital-label">Heart Rate</div>
             <div class="vital-value">@v.HeartRate</div>
             <div class="vital-unit">bpm · @v.LoggedAt.ToString("dd MMM HH:mm")</div>
-            @if (v.HeartRate > 100 || (v.HeartRate < 60 && v.HeartRate > 0)) { <span class="vital-flag"><svg width="10" height="10"><use href="#ic-alert"/></svg> @(v.HeartRate > 100 ? "High" : "Low")</span> }
-            else                                                               { <span class="vital-ok"><svg width="10" height="10"><use href="#ic-check-circle"/></svg> Normal</span> }
+            @if (v.HeartRate > 100 || (v.HeartRate < 60 && v.HeartRate > 0)) { <span class="vital-flag"><svg width="10" height="10"><use href="#ic-alert"/></svg> Abnormal</span> }
+            else { <span class="vital-ok"><svg width="10" height="10"><use href="#ic-check-circle"/></svg> Normal</span> }
         </div>
 
-        <!-- Blood Glucose -->
         <div class="vital-card @glcClass">
             <div class="vital-label">Blood Glucose</div>
             <div class="vital-value">@v.BloodGlucose.ToString("0.0")</div>
@@ -92,70 +90,54 @@
             else                          { <span class="vital-ok"><svg width="10" height="10"><use href="#ic-check-circle"/></svg> Normal</span> }
         </div>
 
-        <!-- Temperature -->
         <div class="vital-card @tmpClass">
             <div class="vital-label">Temperature</div>
             <div class="vital-value">@v.Temperature.ToString("0.0")</div>
             <div class="vital-unit">°C · @v.LoggedAt.ToString("dd MMM HH:mm")</div>
             @if (v.Temperature > 39.5)    { <span class="vital-flag"><svg width="10" height="10"><use href="#ic-alert"/></svg> High fever</span> }
-            else if (v.Temperature > 38)  { <span class="vital-warn">Elevated</span> }
+            else if (v.Temperature > 38)  { <span class="vital-warn">Fever</span> }
             else                          { <span class="vital-ok"><svg width="10" height="10"><use href="#ic-check-circle"/></svg> Normal</span> }
         </div>
 
-        <!-- Weight -->
-        <div class="vital-card vital-card--normal">
-            <div class="vital-label">Weight</div>
-            <div class="vital-value">@v.Weight.ToString("0.0")</div>
-            <div class="vital-unit">kg · @v.LoggedAt.ToString("dd MMM HH:mm")</div>
-            <span class="vital-ok"><svg width="10" height="10"><use href="#ic-check-circle"/></svg> Recorded</span>
-        </div>
-
-        <!-- Sleep -->
         <div class="vital-card @slpClass">
             <div class="vital-label">Sleep Last Night</div>
             <div class="vital-value">@v.SleepHours.ToString("0.0")</div>
             <div class="vital-unit">hours</div>
-            @if (v.SleepHours < 5 && v.SleepHours > 0)      { <span class="vital-flag"><svg width="10" height="10"><use href="#ic-alert"/></svg> Too low</span> }
-            else if (v.SleepHours < 7 && v.SleepHours > 0)  { <span class="vital-warn">Below target</span> }
-            else                                             { <span class="vital-ok"><svg width="10" height="10"><use href="#ic-check-circle"/></svg> Good</span> }
+            @if (v.SleepHours < 5 && v.SleepHours > 0)     { <span class="vital-flag"><svg width="10" height="10"><use href="#ic-alert"/></svg> Too low</span> }
+            else if (v.SleepHours < 7 && v.SleepHours > 0) { <span class="vital-warn">Below target</span> }
+            else                                            { <span class="vital-ok"><svg width="10" height="10"><use href="#ic-check-circle"/></svg> Good</span> }
         </div>
 
-        <!-- Water Intake -->
-        <div class="vital-card @h2oClass">
+        <div class="vital-card @wtrClass">
             <div class="vital-label">Water Intake</div>
             <div class="vital-value">@v.WaterIntakeLitres.ToString("0.0")</div>
-            <div class="vital-unit">litres · today</div>
-            @if (v.WaterIntakeLitres < 1 && v.WaterIntakeLitres > 0)      { <span class="vital-flag"><svg width="10" height="10"><use href="#ic-alert"/></svg> Very low</span> }
-            else if (v.WaterIntakeLitres < 2 && v.WaterIntakeLitres > 0)  { <span class="vital-warn">Below 2L target</span> }
-            else                                                           { <span class="vital-ok"><svg width="10" height="10"><use href="#ic-check-circle"/></svg> Good</span> }
+            <div class="vital-unit">litres today</div>
+            @if (v.WaterIntakeLitres < 1 && v.WaterIntakeLitres > 0)     { <span class="vital-flag"><svg width="10" height="10"><use href="#ic-alert"/></svg> Very low</span> }
+            else if (v.WaterIntakeLitres < 2 && v.WaterIntakeLitres > 0) { <span class="vital-warn">Below 2L</span> }
+            else                                                          { <span class="vital-ok"><svg width="10" height="10"><use href="#ic-check-circle"/></svg> Good</span> }
         </div>
 
-        <!-- Overall status -->
-        <div class="vital-card @(flagCount > 0 ? "vital-card--caution" : "vital-card--normal")">
-            <div class="vital-label">Overall Status</div>
-            <div class="vital-value" style="font-size:18px;
-                 color:@(flagCount > 0 ? "var(--caution)" : "var(--stable)");">
-                @(flagCount > 0 ? "Needs attention" : "All good")
-            </div>
-            <div class="vital-unit" style="margin-bottom:8px;">
-                @(flagCount > 0 ? $"{flagCount} reading(s) flagged" : "No flags in history")
-            </div>
-            @if (flagCount > 0) { <span class="vital-warn">@flagCount flagged</span> }
-            else                { <span class="vital-ok"><svg width="10" height="10"><use href="#ic-check-circle"/></svg> Clear</span> }
+        <div class="vital-card" style="grid-column:span 2;">
+            <div class="vital-label">Weight</div>
+            <div class="vital-value">@v.Weight.ToString("0.0")</div>
+            <div class="vital-unit">kg · @v.LoggedAt.ToString("dd MMM")</div>
+            <span class="vital-ok"><svg width="10" height="10"><use href="#ic-check-circle"/></svg> Logged</span>
         </div>
 
     </div>
 
-    <!-- BP Trend Chart -->
+    <!-- 7-day Trend Chart -->
     @if (Model.RecentVitals.Count >= 2)
     {
         <div class="card" style="margin-bottom:24px;">
             <div class="card-header">
-                <div class="card-title">Blood Pressure Trend</div>
-                <span style="font-size:12px;color:var(--slate-muted);">Last @Math.Min(Model.RecentVitals.Count, 7) readings</span>
+                <div class="card-title">30-Day Trend</div>
+                <span style="font-size:12px;color:var(--slate-soft);">
+                    Last @Model.RecentVitals.Count readings
+                </span>
             </div>
             <div class="chart-container">
-                <canvas id="bpTrendChart" height="160"></canvas>
+                <canvas id="vitalsChart" height="160"></canvas>
             </div>
         </div>
     }
@@ -181,7 +163,7 @@ else
 <div class="card">
     <div class="card-header">
         <div class="card-title">Vitals History</div>
-        <span style="font-size:12.5px;color:var(--slate-muted);">
+        <span style="font-size:12.5px;color:var(--slate-soft);">
             @Model.RecentVitals.Count entries
         </span>
     </div>
@@ -189,7 +171,7 @@ else
         <table>
             <thead>
                 <tr>
-                    <th>Date</th>
+                    <th>Date &amp; Time</th>
                     <th>BP (mmHg)</th>
                     <th>HR (bpm)</th>
                     <th>Glucose (mmol/L)</th>
@@ -212,19 +194,24 @@ else
                     foreach (var vital in Model.RecentVitals)
                     {
                         <tr>
-                            <td style="font-size:13px;">@vital.LoggedAt.ToString("dd MMM yyyy")</td>
-                            <td style="font-weight:@(vital.BloodPressureSystolic > 140 ? "600" : "400");
-                                       color:@(vital.BloodPressureSystolic > 140 ? "var(--critical)" : "inherit");">
+                            <td style="color:var(--slate-soft);font-size:13px;">
+                                @vital.LoggedAt.ToString("dd MMM yyyy · HH:mm")
+                            </td>
+                            <td style="@(vital.BloodPressureSystolic > 140 ? "color:var(--critical);font-weight:600;" : "")">
                                 @vital.BloodPressureSystolic/@vital.BloodPressureDiastolic
                             </td>
-                            <td>@vital.HeartRate</td>
-                            <td style="color:@(vital.BloodGlucose > 11 ? "var(--critical)" : vital.BloodGlucose > 8 ? "var(--caution)" : "inherit");">
+                            <td style="@(vital.HeartRate > 100 || (vital.HeartRate < 60 && vital.HeartRate > 0) ? "color:var(--critical);font-weight:600;" : "")">
+                                @vital.HeartRate
+                            </td>
+                            <td style="@(vital.BloodGlucose > 11 ? "color:var(--critical);font-weight:600;" : vital.BloodGlucose > 8 ? "color:var(--caution);font-weight:500;" : "")">
                                 @vital.BloodGlucose.ToString("0.0")
                             </td>
-                            <td style="color:@(vital.Temperature > 38 ? "var(--caution)" : "inherit");">
+                            <td style="@(vital.Temperature > 38 ? "color:var(--caution);font-weight:500;" : "")">
                                 @vital.Temperature.ToString("0.0")
                             </td>
-                            <td>@vital.SleepHours.ToString("0.0")</td>
+                            <td style="@(vital.SleepHours < 7 && vital.SleepHours > 0 ? "color:var(--caution);font-weight:500;" : "")">
+                                @vital.SleepHours.ToString("0.0")
+                            </td>
                             <td>
                                 <span class="badge @(vital.IsFlagged ? "badge-high" : "badge-stable")">
                                     @(vital.IsFlagged ? "Flagged" : "Clear")
@@ -320,47 +307,41 @@ else
         o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
     });
 
-    // BP trend chart
-    const bpCanvas = document.getElementById('bpTrendChart');
-    if (bpCanvas) {
-        const history = @Html.Raw(JsonSerializer.Serialize(
-            Model.RecentVitals.Take(7).Reverse().Select(x => new {
-                date      = x.LoggedAt.ToString("dd MMM"),
-                systolic  = x.BloodPressureSystolic,
-                diastolic = x.BloodPressureDiastolic,
-                heartRate = x.HeartRate
-            })
-        ));
+    const history = @Html.Raw(JsonSerializer.Serialize(
+        Model.RecentVitals.Take(30).Reverse().Select(x => new {
+            date      = x.LoggedAt.ToString("dd MMM"),
+            systolic  = x.BloodPressureSystolic,
+            heartRate = x.HeartRate,
+            glucose   = x.BloodGlucose,
+            temp      = x.Temperature
+        })
+    ));
 
-        new Chart(bpCanvas, {
+    const canvas = document.getElementById('vitalsChart');
+    if (canvas && history.length >= 2) {
+        new Chart(canvas, {
             type: 'line',
             data: {
                 labels: history.map(x => x.date),
                 datasets: [
                     {
-                        label: 'Systolic',
+                        label: 'Systolic BP',
                         data: history.map(x => x.systolic),
-                        borderColor: '#C0392B',
-                        backgroundColor: 'rgba(192,57,43,0.07)',
-                        fill: true, tension: 0.4, pointRadius: 4,
-                        pointBackgroundColor: '#C0392B'
-                    },
-                    {
-                        label: 'Diastolic',
-                        data: history.map(x => x.diastolic),
-                        borderColor: '#D4720E',
-                        backgroundColor: 'transparent',
-                        fill: false, tension: 0.4, pointRadius: 4,
-                        borderDash: [4, 3],
-                        pointBackgroundColor: '#D4720E'
+                        borderColor: '#C0392B', backgroundColor: 'rgba(192,57,43,0.06)',
+                        fill: true, tension: 0.4, pointRadius: 3, pointBackgroundColor: '#C0392B'
                     },
                     {
                         label: 'Heart Rate',
                         data: history.map(x => x.heartRate),
-                        borderColor: '#1B5E37',
-                        backgroundColor: 'rgba(27,94,55,0.06)',
-                        fill: true, tension: 0.4, pointRadius: 4,
-                        pointBackgroundColor: '#1B5E37'
+                        borderColor: '#1B5E37', backgroundColor: 'rgba(27,94,55,0.06)',
+                        fill: true, tension: 0.4, pointRadius: 3, pointBackgroundColor: '#1B5E37'
+                    },
+                    {
+                        label: 'Glucose (mmol/L)',
+                        data: history.map(x => x.glucose),
+                        borderColor: '#D4720E', backgroundColor: 'transparent',
+                        fill: false, tension: 0.4, pointRadius: 3,
+                        borderDash: [4, 3], pointBackgroundColor: '#D4720E'
                     }
                 ]
             },

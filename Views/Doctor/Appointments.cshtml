@@ -10,14 +10,13 @@
     ViewData["AlertCount"] = Model.UnreadAlertsCount;
 }
 
-<!-- Search Row -->
+<!-- Search + Filter Row -->
 <div class="search-row">
     <div class="search-wrap">
         <span class="s-icon">
             <svg width="14" height="14"><use href="#ic-search" /></svg>
         </span>
-        <input class="search-input"
-               id="apptSearch"
+        <input class="search-input" id="apptSearch"
                placeholder="Search appointments..."
                onkeyup="filterTable('apptSearch', 'apptTable')" />
     </div>
@@ -34,7 +33,7 @@
 <div class="card">
     <div class="card-header">
         <div class="card-title">My Appointments</div>
-        <span style="font-size:12.5px;color:var(--text-soft);">
+        <span style="font-size:12.5px;color:var(--slate-soft);">
             @Model.UpcomingAppointments.Count total
         </span>
     </div>
@@ -61,76 +60,62 @@
                 }
                 else
                 {
-                    @foreach (var appt in Model.UpcomingAppointments)
+                    foreach (var appt in Model.UpcomingAppointments)
                     {
+                        var statusClass = appt.Status switch
+                        {
+                            "confirmed" => "badge-active",
+                            "cancelled" => "badge-inactive",
+                            "completed" => "badge-stable",
+                            _ => "badge-pending"
+                        };
                         <tr data-status="@appt.Status">
                             <td>
                                 <div class="user-cell">
-                                    <div class="avatar av-1">PT</div>
-                                    <div class="user-name">@appt.PatientId</div>
+                                    <div class="avatar av-2">PT</div>
+                                    <div class="user-name" style="font-size:13px;color:var(--slate-soft);">
+                                        @appt.PatientId.Substring(0, Math.Min(8, appt.PatientId.Length))...
+                                    </div>
                                 </div>
                             </td>
                             <td>@appt.Date</td>
                             <td>@appt.TimeSlot</td>
-                            <td>@appt.Reason</td>
+                            <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                @appt.Reason
+                            </td>
+                            <td><span class="badge @statusClass">@appt.Status</span></td>
                             <td>
-                                <span class="badge @(appt.Status == "confirmed"
-                                                        ? "badge-active" : appt.Status == "cancelled"
-                                                        ? "badge-inactive" : appt.Status == "completed"
-                                                        ? "badge-active" : "badge-pending")">
-                            @appt.Status
-                        </span>
-                    </td>
-                    <td>
-                        <div class="action-row">
-                            @if (appt.Status == "pending")
+                                <div class="action-row">
+                                    @if (appt.Status == "pending")
                                     {
-                                        <form asp-action="UpdateAppointmentStatus"
-                                              asp-controller="Doctor"
-                                              method="post"
-                                              style="display:inline;">
+                                        <form asp-action="UpdateAppointmentStatus" asp-controller="Doctor"
+                                              method="post" style="display:inline;">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="appointmentId" value="@appt.Id" />
                                             <input type="hidden" name="status" value="confirmed" />
-                                            <button type="submit"
-                                                    class="tbl-btn tbl-btn-view"
-                                                    title="Confirm">
-                                                <svg width="13" height="13">
-                                                    <use href="#ic-check-circle" />
-                                                </svg>
+                                            <button type="submit" class="tbl-btn tbl-btn-view" title="Confirm">
+                                                <svg width="13" height="13"><use href="#ic-check-circle" /></svg>
                                             </button>
                                         </form>
-                                        <form asp-action="UpdateAppointmentStatus"
-                                              asp-controller="Doctor"
-                                              method="post"
-                                              style="display:inline;">
+                                        <form asp-action="UpdateAppointmentStatus" asp-controller="Doctor"
+                                              method="post" style="display:inline;">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="appointmentId" value="@appt.Id" />
                                             <input type="hidden" name="status" value="cancelled" />
-                                            <button type="submit"
-                                                    class="tbl-btn tbl-btn-flag"
-                                                    title="Cancel">
-                                                <svg width="13" height="13">
-                                                    <use href="#ic-trash" />
-                                                </svg>
+                                            <button type="submit" class="tbl-btn tbl-btn-flag" title="Cancel">
+                                                <svg width="13" height="13"><use href="#ic-trash" /></svg>
                                             </button>
                                         </form>
                                     }
                                     @if (appt.Status == "confirmed")
                                     {
-                                        <form asp-action="UpdateAppointmentStatus"
-                                              asp-controller="Doctor"
-                                              method="post"
-                                              style="display:inline;">
+                                        <form asp-action="UpdateAppointmentStatus" asp-controller="Doctor"
+                                              method="post" style="display:inline;">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="appointmentId" value="@appt.Id" />
                                             <input type="hidden" name="status" value="completed" />
-                                            <button type="submit"
-                                                    class="tbl-btn tbl-btn-view"
-                                                    title="Mark as completed">
-                                                <svg width="13" height="13">
-                                                    <use href="#ic-check-circle" />
-                                                </svg>
+                                            <button type="submit" class="tbl-btn tbl-btn-view" title="Mark completed">
+                                                <svg width="13" height="13"><use href="#ic-check-circle" /></svg>
                                             </button>
                                         </form>
                                     }
@@ -147,20 +132,15 @@
 @section Scripts {
     <script>
         function filterTable(inputId, tableId) {
-          const filter = document.getElementById(inputId).value.toLowerCase();
-          const rows   = document.querySelectorAll(`#${tableId} tbody tr`);
-          rows.forEach(row => {
-            row.style.display = row.textContent.toLowerCase().includes(filter)
-              ? '' : 'none';
-          });
+            const filter = document.getElementById(inputId).value.toLowerCase();
+            document.querySelectorAll(`#${tableId} tbody tr`).forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+            });
         }
-
         function filterByStatus(status) {
-          const rows = document.querySelectorAll('#apptTable tbody tr');
-          rows.forEach(row => {
-            row.style.display = !status ||
-              row.dataset.status === status ? '' : 'none';
-          });
+            document.querySelectorAll('#apptTable tbody tr').forEach(row => {
+                row.style.display = !status || row.dataset.status === status ? '' : 'none';
+            });
         }
     </script>
 }

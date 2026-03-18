@@ -10,7 +10,7 @@
 }
 
 <!-- Header Row -->
-<div class="search-row" style="margin-bottom:22px;">
+<div class="search-row">
     <div style="flex:1;">
         <div style="font-size:13px;color:var(--slate-soft);">
             Log a symptom and receive an AI assessment based on your health profile.
@@ -25,7 +25,7 @@
 <div class="card">
     <div class="card-header">
         <div class="card-title">My Symptom Log</div>
-        <span style="font-size:12.5px;color:var(--slate-muted);">
+        <span style="font-size:12.5px;color:var(--slate-soft);">
             @Model.RecentSymptoms.Count entries
         </span>
     </div>
@@ -65,7 +65,7 @@
                         }
                         else
                         {
-                            <span class="badge badge-pending">Pending</span>
+                            <span class="badge badge-pending">Pending Assessment</span>
                         }
                     </div>
 
@@ -92,7 +92,8 @@
                             </div>
                             <div class="ai-footer">
                                 <div class="ai-timestamp">
-                                    Generated @symptom.AiAssessment.GeneratedAt.ToString("dd MMM yyyy") &middot; @symptom.AiAssessment.ModelUsed
+                                    Generated @symptom.AiAssessment.GeneratedAt.ToString("dd MMM yyyy") &middot;
+                                    @symptom.AiAssessment.ModelUsed
                                 </div>
                             </div>
                         </div>
@@ -128,11 +129,13 @@
         </div>
         <form asp-action="LogSymptom" asp-controller="Patient" method="post">
             @Html.AntiForgeryToken()
+
             <div class="form-group">
                 <label class="form-label">Describe your symptom</label>
                 <textarea name="Description" class="form-textarea"
                           placeholder="e.g. I've been experiencing a dull headache since this morning..."></textarea>
             </div>
+
             <div class="vitals-form-grid">
                 <div class="form-group">
                     <label class="form-label">Body Area</label>
@@ -155,14 +158,12 @@
                 </div>
             </div>
 
-            <!-- AI info notice -->
-            <div style="padding:12px 14px;
-                        background:var(--forest-mist);
-                        border:1px solid var(--border);
-                        border-radius:var(--radius-sm);
+            <!-- AI notice -->
+            <div style="padding:12px 14px;background:var(--forest-mist);
+                        border:1px solid var(--border);border-radius:var(--radius-sm);
                         font-size:12.5px;color:var(--slate-mid);line-height:1.5;">
                 <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">
-                    <div class="ai-icon" style="width:18px;height:18px;">
+                    <div class="ai-icon" style="width:18px;height:18px;flex-shrink:0;">
                         <svg width="10" height="10"><use href="#ic-sparkles" /></svg>
                     </div>
                     <span style="font-size:10.5px;font-weight:700;color:var(--forest);
@@ -171,12 +172,14 @@
                     </span>
                 </div>
                 After submitting, our AI will assess your symptom using your existing
-                conditions and recent vitals. The result will appear here and be shared
-                with your doctor.
+                conditions and recent vitals. The result will appear here and be
+                shared with your doctor.
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-ghost" onclick="closeModal('logSymptomModal')">Cancel</button>
+                <button type="button" class="btn btn-ghost" onclick="closeModal('logSymptomModal')">
+                    Cancel
+                </button>
                 <button type="submit" class="btn btn-primary">
                     <svg width="13" height="13"><use href="#ic-sparkles" /></svg>
                     Submit &amp; Analyse

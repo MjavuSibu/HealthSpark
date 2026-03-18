@@ -18,32 +18,6 @@
     </div>
     <div class="card-body">
 
-        <!-- Avatar + name header -->
-        <div style="display:flex;align-items:center;gap:16px;
-                    padding-bottom:20px;margin-bottom:20px;
-                    border-bottom:1px solid var(--border-soft);">
-            <div style="width:56px;height:56px;border-radius:50%;
-                        background:linear-gradient(135deg,var(--forest-light),var(--forest));
-                        display:flex;align-items:center;justify-content:center;
-                        font-size:20px;font-weight:700;color:white;flex-shrink:0;">
-                @{
-                    var initials = Model.CurrentUser.FullName.Length >= 2
-                    ? Model.CurrentUser.FullName[..2].ToUpper()
-                    : Model.CurrentUser.FullName.ToUpper();
-                }
-                @initials
-            </div>
-            <div>
-                <div style="font-family:'Cormorant Garamond',serif;font-size:22px;
-                            font-weight:700;color:var(--slate);letter-spacing:-0.2px;">
-                    @Model.CurrentUser.FullName
-                </div>
-                <div style="font-size:13px;color:var(--slate-soft);margin-top:2px;">
-                    Patient &middot; @Model.CurrentUser.Email
-                </div>
-            </div>
-        </div>
-
         <!-- Personal Information -->
         <div class="profile-section">
             <div class="profile-section-title">Personal Information</div>
@@ -67,17 +41,7 @@
                 <div class="profile-field">
                     <div class="profile-label">Blood Type</div>
                     <div class="profile-value">
-                        @if (!string.IsNullOrEmpty(Model.PatientProfile?.BloodType))
-                        {
-                            <span class="badge badge-stable"
-                                  style="font-size:13px;padding:4px 12px;">
-                                @Model.PatientProfile.BloodType
-                            </span>
-                        }
-                        else
-                        {
-                            <span style="color:var(--slate-muted);">Not set</span>
-                        }
+                        @(string.IsNullOrEmpty(Model.PatientProfile?.BloodType) ? "Not set" : Model.PatientProfile.BloodType)
                     </div>
                 </div>
                 <div class="profile-field">
@@ -123,7 +87,7 @@
                     }
                     else
                     {
-                        <span style="font-size:13px;color:var(--slate-muted);">None recorded</span>
+                        <span style="font-size:13px;color:var(--slate-soft);">None recorded</span>
                     }
                 </div>
             </div>
@@ -140,38 +104,28 @@
                     }
                     else
                     {
-                        <span style="font-size:13px;color:var(--slate-muted);">None recorded</span>
+                        <span style="font-size:13px;color:var(--slate-soft);">None recorded</span>
                     }
                 </div>
             </div>
         </div>
 
         <!-- Emergency Contact -->
-        <div class="profile-section" style="margin-bottom:0;">
+        <div class="profile-section">
             <div class="profile-section-title">Emergency Contact</div>
             <div class="profile-grid">
                 <div class="profile-field">
                     <div class="profile-label">Name</div>
                     <div class="profile-value">
                         @(string.IsNullOrEmpty(Model.PatientProfile?.EmergencyContactName)
-                                                ? "Not set"
-                                                : Model.PatientProfile.EmergencyContactName)
+                                                ? "Not set" : Model.PatientProfile.EmergencyContactName)
                     </div>
                 </div>
                 <div class="profile-field">
                     <div class="profile-label">Phone</div>
                     <div class="profile-value">
-                        @if (!string.IsNullOrEmpty(Model.PatientProfile?.EmergencyContactPhone))
-                        {
-                            <a href="tel:@Model.PatientProfile.EmergencyContactPhone"
-                               style="color:var(--forest);font-weight:600;">
-                                @Model.PatientProfile.EmergencyContactPhone
-                            </a>
-                        }
-                        else
-                        {
-                            <span style="color:var(--slate-muted);">Not set</span>
-                        }
+                        @(string.IsNullOrEmpty(Model.PatientProfile?.EmergencyContactPhone)
+                                                ? "Not set" : Model.PatientProfile.EmergencyContactPhone)
                     </div>
                 </div>
             </div>
@@ -187,7 +141,6 @@
         <div class="modal-sub">Update your health profile information.</div>
         <form asp-action="UpdateProfile" asp-controller="Patient" method="post">
             @Html.AntiForgeryToken()
-
             <div class="form-grid-2">
                 <div class="form-group">
                     <label class="form-label">Blood Type</label>
@@ -205,17 +158,15 @@
                            value="@Model.PatientProfile?.Height" />
                 </div>
             </div>
-
             <div class="form-group">
                 <label class="form-label">Weight (kg)</label>
                 <input name="Weight" class="form-input" type="number" step="0.1"
                        value="@Model.PatientProfile?.Weight" />
             </div>
-
             <div class="form-group">
                 <label class="form-label">
                     Existing Conditions
-                    <span style="font-size:10.5px;color:var(--slate-muted);font-weight:400;margin-left:4px;">
+                    <span style="font-size:10.5px;color:var(--slate-soft);font-weight:400;margin-left:4px;">
                         (comma separated)
                     </span>
                 </label>
@@ -223,11 +174,10 @@
                        placeholder="e.g. Hypertension, Type 2 Diabetes"
                        value="@string.Join(", ", Model.PatientProfile?.ExistingConditions ?? new List<string>())" />
             </div>
-
             <div class="form-group">
                 <label class="form-label">
                     Allergies
-                    <span style="font-size:10.5px;color:var(--slate-muted);font-weight:400;margin-left:4px;">
+                    <span style="font-size:10.5px;color:var(--slate-soft);font-weight:400;margin-left:4px;">
                         (comma separated)
                     </span>
                 </label>
@@ -235,12 +185,10 @@
                        placeholder="e.g. Penicillin, Aspirin"
                        value="@string.Join(", ", Model.PatientProfile?.Allergies ?? new List<string>())" />
             </div>
-
             <div class="form-grid-2">
                 <div class="form-group">
                     <label class="form-label">Emergency Contact Name</label>
-                    <input name="EmergencyContactName" class="form-input"
-                           placeholder="Full name"
+                    <input name="EmergencyContactName" class="form-input" placeholder="Full name"
                            value="@Model.PatientProfile?.EmergencyContactName" />
                 </div>
                 <div class="form-group">
@@ -250,9 +198,10 @@
                            value="@Model.PatientProfile?.EmergencyContactPhone" />
                 </div>
             </div>
-
             <div class="modal-footer">
-                <button type="button" class="btn btn-ghost" onclick="closeModal('editProfileModal')">Cancel</button>
+                <button type="button" class="btn btn-ghost" onclick="closeModal('editProfileModal')">
+                    Cancel
+                </button>
                 <button type="submit" class="btn btn-primary">Save Changes</button>
             </div>
         </form>

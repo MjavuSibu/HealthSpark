@@ -11,7 +11,7 @@
     ViewData["AlertCount"] = Model.Alerts?.Count ?? 0;
 
     var hour = DateTime.Now.Hour;
-    var greeting = hour < 12 ? "Sawubona" : hour < 17 ? "Good afternoon" : "Good evening";
+    var greeting = hour < 12 ? "Hello" : hour < 17 ? "Good afternoon" : "Good evening";
     var firstName = Model.CurrentUser?.FullName?.Split(' ')[0] ?? "there";
 
     int riskScore = 0;

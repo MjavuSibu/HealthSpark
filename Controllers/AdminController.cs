@@ -16,7 +16,7 @@ namespace HealthSpark.Controllers
             _authService = authService;
         }
 
-        // ── Dashboard ──────────────────────────────────────
+        // ── Dashboard ────────────────────────────────────
 
         public async Task<IActionResult> Dashboard()
         {
